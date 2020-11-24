@@ -1,0 +1,6 @@
+# Vim files
+*.swp
+*.swo
+
+# go test files
+*.test
