@@ -28,11 +28,9 @@ func main() {
 
 	for i := 0; i < len(ex); i++ {
 		for j := i + 1; j < len(ex); j++ {
-			for k := j + 1; k < len(ex); k++ {
-				if ex[i]+ex[j]+ex[k] == 2020 {
-					fmt.Printf("Found %d + %d = 2020\n", ex[i], ex[j])
-					fmt.Printf("%d x %d = %d\n", ex[i], ex[j], ex[i]*ex[j]*ex[k])
-				}
+			if ex[i]+ex[j] == 2020 {
+				fmt.Printf("Found %d + %d = 2020\n", ex[i], ex[j])
+				fmt.Printf("%d x %d = %d\n", ex[i], ex[j], ex[i]*ex[j])
 			}
 		}
 	}
