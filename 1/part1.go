@@ -1,29 +1,26 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
-	"os"
 	"strconv"
+
+	"github.com/RaphaelPour/aoc2020/util"
 )
 
 func main() {
-	fmt.Println(" Part I ====")
 	ex := make([]int, 0)
-	scanner := bufio.NewScanner(os.Stdin)
 
-	index := 0
-	for scanner.Scan() {
-		line := scanner.Text()
+	lines := util.LoadDefault()
+
+	for i, line := range lines {
 		n, err := strconv.Atoi(line)
 		if err != nil {
-			fmt.Printf("%s is not a number in line %d!\n", line, index)
+			fmt.Printf("%s is not a number in line %d!\n", line, i)
 			return
 		}
 
 		ex = append(ex, n)
 
-		index++
 	}
 
 	for i := 0; i < len(ex); i++ {
