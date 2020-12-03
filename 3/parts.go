@@ -11,7 +11,7 @@ func main() {
 	/* Parse input to struct */
 	trees := []int{0, 0, 0, 0, 0}
 	indices := []int{1, 3, 5, 7, 1}
-	for i, line := range util.Load("input") {
+	for i, line := range util.LoadDefault() {
 		if i == 0 {
 			continue
 		}
@@ -43,20 +43,13 @@ func main() {
 		indices[2] += 5
 		indices[3] += 7
 	}
-	fmt.Println("Invalid: 3049503392")
-	fmt.Println("Invalid: 3716582259")
-	fmt.Println("Invalid: 692311536")
-	fmt.Println("Invalid: 614836656")
-	fmt.Println("Invalid: 596157156")
-	fmt.Println("Invalid: 634618908")
-	fmt.Println("Invalid: 3907176221")
 
 	if trees[1] != 299 {
 		fmt.Printf("Slope 2 (right 3, down 1) is wrong. Got %d, expected 299\n", trees[1])
 	}
 
 	result := 1
-	for i, c := range trees {
+	for _, c := range trees {
 		result *= c
 	}
 	fmt.Printf("Part1:  %d\n", trees[1])
