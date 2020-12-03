@@ -1,78 +1,58 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
-	"os"
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/RaphaelPour/aoc2020/util"
 )
-
-type Entry struct {
-	min, max int
-	needle   string
-	password string
-}
-
-func (e Entry) String() string {
-	return fmt.Sprintf("min=%d, max=%d, needle=%s, password=%s",
-		e.min, e.max, e.needle, e.password,
-	)
-}
 
 func main() {
 
 	re := regexp.MustCompile(`^(\d+)-(\d+)\s(\w):\s(\w+)$`)
-	scanner := bufio.NewScanner(os.Stdin)
 
-	index := 0
 	correct1 := 0
 	correct2 := 0
-	/* Parse input to struct */
-	for scanner.Scan() {
-		line := scanner.Text()
 
+	/* Parse input to struct */
+	for i, line := range util.LoadDefault() {
 		match := re.FindStringSubmatch(line)
 
 		min, err := strconv.Atoi(match[1])
 		if err != nil {
-			fmt.Printf("Min '%s' is not a number in line %d\n", match[1], index)
+			fmt.Printf("Min '%s' is not a number in line %d\n", match[1], i)
 			return
 		}
 
 		max, err := strconv.Atoi(match[2])
 		if err != nil {
-			fmt.Printf("Max '%s' is not a number in line %d\n", match[1], index)
+			fmt.Printf("Max '%s' is not a number in line %d\n", match[2], i)
 			return
 		}
 
-		e := Entry{
-			min:      min,
-			max:      max,
-			needle:   match[3],
-			password: match[4],
-		}
+		char := match[3]
+		pw := match[4]
 
-		count1 := strings.Count(match[4], match[3])
+		count1 := strings.Count(pw, char)
 
 		if count1 <= max && count1 >= min {
 			correct1++
 		}
-		count := 0
-		if min-1 >= 0 && e.password[min-1] == e.needle[0] {
-			count += 1
+
+		count2 := 0
+		if min-1 >= 0 && pw[min-1] == char[0] {
+			count2 += 1
 		}
 
-		if max-1 >= 0 && e.password[max-1] == e.needle[0] {
-			count += 1
+		if max-1 >= 0 && pw[max-1] == char[0] {
+			count2 += 1
 		}
 
-		if count == 1 {
+		if count2 == 1 {
 			correct2++
 		}
-
-		index++
 	}
 	fmt.Printf("Valid part 1: %d\n", correct1)
 	fmt.Printf("Valid part 2: %d\n", correct2)

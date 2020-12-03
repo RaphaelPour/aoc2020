@@ -1,0 +1,8 @@
+version: '2'
+output: 'prefixed'
+expansions: 3
+
+tasks:
+  test:
+    cmds:
+      - go test -v ./... -json | tparse -all
