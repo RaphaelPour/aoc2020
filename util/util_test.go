@@ -33,3 +33,17 @@ func TestLoadDefault(t *testing.T) {
 
 	require.Equal(t, []string{input}, LoadDefault())
 }
+
+func TestProduct(t *testing.T) {
+	input := []int{1, 2, 3, 4, 5}
+	expected := 120
+
+	require.Equal(t, expected, Product(input))
+}
+
+func TestSum(t *testing.T) {
+	input := []int{1, 2, 3, 4, 5}
+	expected := 15
+
+	require.Equal(t, expected, Sum(input))
+}
