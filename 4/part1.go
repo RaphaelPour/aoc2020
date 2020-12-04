@@ -8,23 +8,6 @@ import (
 	"github.com/RaphaelPour/aoc2020/util"
 )
 
-func isStrSubset(set, subset []string) bool {
-	for _, subel := range subset {
-		found := false
-		for _, el := range set {
-			if el == subel {
-				found = true
-				break
-			}
-		}
-		if !found {
-			return false
-		}
-	}
-
-	return true
-}
-
 func byr(v string) bool {
 	if len(v) != 4 {
 		return false
