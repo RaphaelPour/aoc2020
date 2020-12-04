@@ -144,45 +144,14 @@ func main() {
 		if line == "" {
 			kv := re.FindAllStringSubmatch(currentLine, -1)
 
-			// fmt.Println(kv)
 			check := 0
 			for _, match := range kv {
-				switch match[1] {
-				case "ecl":
-					if ecl(match[2]) {
-						fmt.Println("ecl")
-						check++
-					}
-				case "pid":
-					if pid(match[2]) {
-						fmt.Println("pid")
-						check++
-					}
-				case "eyr":
-					if eyr(match[2]) {
-						fmt.Println("eyr")
-						check++
-					}
-				case "hcl":
-					if hcl(match[2]) {
-						fmt.Println("hcl")
-						check++
-					}
-				case "byr":
-					if byr(match[2]) {
-						fmt.Println("byr")
-						check++
-					}
-				case "iyr":
-					if iyr(match[2]) {
-						fmt.Println("iyr")
-						check++
-					}
-				case "hgt":
-					if hgt(match[2]) {
-						fmt.Println("hgt")
-						check++
-					}
+				validator, ok := validators[match[1]]
+				if !ok {
+					continue
+				}
+				if validator(match[2]) {
+					check++
 				}
 			}
 			if check == 7 {
