@@ -123,6 +123,16 @@ func cid(v string) bool {
 	return true
 }
 
+var validators = map[string]func(v string) bool{
+	"ecl": ecl,
+	"pid": pid,
+	"eyr": eyr,
+	"hcl": hcl,
+	"byr": byr,
+	"iyr": iyr,
+	"hgt": hgt,
+}
+
 func main() {
 
 	re := regexp.MustCompile(`(\w+):(#?\d?\w*)`)
