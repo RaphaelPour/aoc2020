@@ -9,52 +9,24 @@ import (
 )
 
 func byr(v string) bool {
-	if len(v) != 4 {
-		return false
-	}
-
 	num, err := strconv.Atoi(v)
-	if err != nil {
-		fmt.Printf("%s is NaN\n", v)
+	if err != nil || num < 1920 || num > 2002 {
 		return false
 	}
-
-	if num < 1920 || num > 2002 {
-		return false
-	}
-
 	return true
 }
 
 func iyr(v string) bool {
-	if len(v) != 4 {
-		return false
-	}
-
 	num, err := strconv.Atoi(v)
-	if err != nil {
-		fmt.Printf("%s is NaN\n", v)
-		return false
-	}
-
-	if num < 2010 || num > 2020 {
+	if err != nil || num < 2010 || num > 2020 {
 		return false
 	}
 	return true
 }
 
 func eyr(v string) bool {
-	if len(v) != 4 {
-		return false
-	}
-
 	num, err := strconv.Atoi(v)
-	if err != nil {
-		fmt.Printf("%s is NaN\n", v)
-		return false
-	}
-
-	if num < 2020 || num > 2030 {
+	if err != nil || num < 2020 || num > 2030 {
 		return false
 	}
 	return true
@@ -63,43 +35,25 @@ func eyr(v string) bool {
 func hgt(v string) bool {
 	re := regexp.MustCompile(`^(\d+)(cm|in)$`)
 	match := re.FindStringSubmatch(v)
-
 	if len(match) < 3 {
-		fmt.Println("Something is missing in hgt:", v)
 		return false
 	}
-
 	num, err := strconv.Atoi(match[1])
 	if err != nil {
-		fmt.Printf("%s is NaN\n", v)
 		return false
 	}
 
-	if len(match) < 3 {
-		fmt.Println("Something is missing..")
+	if match[2] == "cm" && (num < 150 || num > 193) {
 		return false
-	}
-
-	if match[2] == "cm" {
-		if num < 150 || num > 193 {
-			return false
-		}
-	} else if match[2] == "in" {
-		if num < 59 || num > 76 {
-			return false
-		}
-	} else {
-		fmt.Println("Unknown unit", match[2])
+	} else if match[2] == "in" && (num < 59 || num > 76) {
+		return false
 	}
 
 	return true
 }
 
 func hcl(v string) bool {
-	if len(v) != 7 {
-		return false
-	}
-	re := regexp.MustCompile(`#[\dabcdef]`)
+	re := regexp.MustCompile(`#[\dabcdef]{6}`)
 	return re.MatchString(v)
 }
 
@@ -115,12 +69,7 @@ func ecl(v string) bool {
 
 func pid(v string) bool {
 	re := regexp.MustCompile(`^[\d]{9}$`)
-	match := re.FindStringSubmatch(v)
-	return len(match) > 0
-}
-
-func cid(v string) bool {
-	return true
+	return re.MatchString(v)
 }
 
 var validators = map[string]func(v string) bool{
