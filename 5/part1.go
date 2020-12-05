@@ -34,9 +34,7 @@ func main() {
 	}
 
 	re := regexp.MustCompile(`([FB]+)([RL]+)`)
-	file := "input"
-	fmt.Println(file)
-	for i, line := range util.Load(file) {
+	for i, line := range util.LoadDefaultString() {
 		match := re.FindStringSubmatch(line)
 		if len(match) < 3 {
 			fmt.Printf("Unknown line %d: %s\n", i, line)
@@ -54,11 +52,8 @@ func main() {
 		row := Bin2Dec(match[1], 'B', 'F')
 		col := Bin2Dec(match[2], 'R', 'L')
 		seatsOccupied[row][col] = true
-		fmt.Println(seatsOccupied[row])
-		fmt.Println(seatsOccupied[row][col])
 	}
 
-	fmt.Println(seatsOccupied)
 	finalID := 0
 	for row := 0; row < 128; row++ {
 		for col := 0; col < 8; col++ {

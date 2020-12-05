@@ -36,19 +36,17 @@ func BoardingID(row, col int) int {
 func main() {
 
 	seatsOccupied := make(map[int]map[int]bool, 0)
-	ids := make([]int,0)
+	ids := make([]int, 0)
 
 	for i := 0; i < 128; i++ {
 		seatsOccupied[i] = make(map[int]bool, 0)
-		for j:=0;j<8;j++{
+		for j := 0; j < 8; j++ {
 			seatsOccupied[i][j] = false
 		}
 	}
 
 	re := regexp.MustCompile(`([FB]+)([RL]+)`)
-	file := "input"
-	fmt.Println(file)
-	for i, line := range util.Load(file) {
+	for i, line := range util.LoadDefaultString() {
 		match := re.FindStringSubmatch(line)
 		if len(match) < 3 {
 			fmt.Printf("Unknown line %d: %s\n", i, line)
@@ -66,7 +64,7 @@ func main() {
 		row := Bin2Dec(match[1], 'B', 'F')
 		col := Bin2Dec(match[2], 'R', 'L')
 		seatsOccupied[row][col] = true
-		ids = append(ids, BoardingID(row,col))
+		ids = append(ids, BoardingID(row, col))
 	}
 
 	finalID := 0
@@ -88,13 +86,13 @@ func main() {
 
 					if id1found && id2found {
 						fmt.Println("ID:", id)
-						return 
+						return
 					}
 				}
 			}
 		}
 	}
 
-	fmt.Println("Invalid: ",71)
+	fmt.Println("Invalid: ", 71)
 	fmt.Println(" Result: ", finalID)
 }
