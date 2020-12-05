@@ -4,13 +4,14 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"strconv"
 )
 
-func LoadDefault() []string {
-	return Load("input")
+func LoadDefaultString() []string {
+	return LoadString("input")
 }
 
-func Load(filename string) []string {
+func LoadString(filename string) []string {
 	file, err := os.Open(filename)
 	if err != nil {
 		panic(fmt.Sprintf("Error loading file '%s': %s\n", filename, err))
@@ -23,4 +24,27 @@ func Load(filename string) []string {
 	}
 
 	return lines
+}
+
+func LoadDefaultInt() []int {
+	return LoadInt("input")
+}
+
+func LoadInt(filename string) []int {
+	file, err := os.Open(filename)
+	if err != nil {
+		panic(fmt.Sprintf("Error loading file '%s': %s\n", filename, err))
+	}
+
+	scanner := bufio.NewScanner(file)
+	numbers := make([]int, 0)
+	for scanner.Scan() {
+		num, err := strconv.Atoi(string(scanner.Text()))
+		if err != nil {
+			panic(fmt.Sprintf("'%s' is not a number\n", scanner.Text()))
+		}
+		numbers = append(numbers, num)
+	}
+
+	return numbers
 }
