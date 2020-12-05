@@ -66,7 +66,6 @@ func main() {
 		}
 	}
 
-	fmt.Println(" Invalid: ", 1023)
-	fmt.Println("Too high: ", 944)
-	fmt.Println("   Result: ", finalID)
+	fmt.Println(" Valid:", 892)
+	fmt.Println("Result:", finalID)
 }
