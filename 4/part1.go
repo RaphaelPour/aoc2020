@@ -10,26 +10,17 @@ import (
 
 func byr(v string) bool {
 	num, err := strconv.Atoi(v)
-	if err != nil || num < 1920 || num > 2002 {
-		return false
-	}
-	return true
+	return err == nil && util.InRange(num, 1920, 2002)
 }
 
 func iyr(v string) bool {
 	num, err := strconv.Atoi(v)
-	if err != nil || num < 2010 || num > 2020 {
-		return false
-	}
-	return true
+	return err == nil && util.InRange(num, 2010, 2020)
 }
 
 func eyr(v string) bool {
 	num, err := strconv.Atoi(v)
-	if err != nil || num < 2020 || num > 2030 {
-		return false
-	}
-	return true
+	return err == nil && util.InRange(num, 2020, 2030)
 }
 
 func hgt(v string) bool {
@@ -43,28 +34,18 @@ func hgt(v string) bool {
 		return false
 	}
 
-	if match[2] == "cm" && (num < 150 || num > 193) {
-		return false
-	} else if match[2] == "in" && (num < 59 || num > 76) {
-		return false
-	}
-
-	return true
+	return (match[2] == "cm" && util.InRange(num, 150, 193)) ||
+		(match[2] == "in" && util.InRange(num, 59, 76))
 }
 
 func hcl(v string) bool {
-	re := regexp.MustCompile(`#[\dabcdef]{6}`)
+	re := regexp.MustCompile(`^#[\dabcdef]{6}$`)
 	return re.MatchString(v)
 }
 
 func ecl(v string) bool {
-	matches := 0
-	for _, color := range []string{"amb", "blu", "brn", "gry", "grn", "hzl", "oth"} {
-		if v == color {
-			matches++
-		}
-	}
-	return matches == 1
+	re := regexp.MustCompile(`^(amb|blu|brn|gry|grn|hzl|oth)$`)
+	return re.MatchString(v)
 }
 
 func pid(v string) bool {
