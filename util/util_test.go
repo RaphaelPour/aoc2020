@@ -47,3 +47,33 @@ func TestSum(t *testing.T) {
 
 	require.Equal(t, expected, Sum(input))
 }
+
+func TestReverse(t *testing.T) {
+	require.Equal(t, "a", Reverse("a"))
+	require.Equal(t, "ab", Reverse("ba"))
+	require.Equal(t, "aba", Reverse("aba"))
+	require.Equal(t, "", Reverse(""))
+	require.Equal(t, "Aba", Reverse("abA"))
+}
+
+func TestMath(t *testing.T) {
+	require.Equal(t, 1, Abs(1))
+	require.Equal(t, 1, Abs(-1))
+	require.Equal(t, 0, Abs(0))
+
+	require.Equal(t, 0, Min(0))
+	require.Equal(t, 1, Min(1))
+	require.Equal(t, 1, Min(1, 2))
+	require.Equal(t, -1, Min(-1, 0))
+
+	require.Equal(t, 0, Max(0))
+	require.Equal(t, 1, Max(1))
+	require.Equal(t, 1, Max(-1, 1))
+	require.Equal(t, 5, Max(-1, -3, -5, 3, 4, 5))
+
+	require.True(t, InRange(0, -1, 1))
+	require.True(t, InRange(1, -1, 1))
+	require.True(t, InRange(-1, -1, 1))
+	require.False(t, InRange(10, -1, 1))
+	require.False(t, InRange(-10, -1, 1))
+}
