@@ -17,7 +17,7 @@ func main() {
 	correct2 := 0
 
 	/* Parse input to struct */
-	for i, line := range util.LoadDefault() {
+	for i, line := range util.LoadDefaultString() {
 		match := re.FindStringSubmatch(line)
 
 		min, err := strconv.Atoi(match[1])
