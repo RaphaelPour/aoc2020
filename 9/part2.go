@@ -68,17 +68,7 @@ func crack(badNumber int, numbers []int) {
 			}
 
 			if sum == badNumber {
-				max := 0
-				min := int(^uint(0) >> 1)
-				for k := range summands {
-					if summands[k] > max {
-						max = summands[k]
-					}
-
-					if summands[k] < min {
-						min = summands[k]
-					}
-				}
+				min, max := util.MinMaxInts(summands)
 				fmt.Printf("min=%d, max=%d, sum=%d\n", min, max, min+max)
 				return
 			}
