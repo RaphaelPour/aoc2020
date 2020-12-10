@@ -15,3 +15,41 @@ func Sum(vec []int) int {
 	}
 	return result
 }
+
+func MaxInts(vec []int) int {
+	max := 0
+	for _, x := range vec {
+		if x > max {
+			max = x
+		}
+	}
+
+	return max
+}
+
+func MinInts(vec []int) int {
+	min := int(^uint(0) >> 1)
+	for _, x := range vec {
+		if x < min {
+			min = x
+		}
+	}
+
+	return min
+}
+
+func MinMaxInts(vec []int) (int, int) {
+	min := int(^uint(0) >> 1)
+	max := 0
+	for _, x := range vec {
+		if x < min {
+			min = x
+		}
+		if x > max {
+			max = x
+		}
+	}
+
+	return min, max
+
+}

@@ -44,7 +44,7 @@ func TestLoadInt(t *testing.T) {
 	require.Nil(t, err)
 	require.Nil(t, file.Close())
 
-	require.Equal(t, []int{1,2}, LoadDefaultInt())
+	require.Equal(t, []int{1, 2}, LoadDefaultInt())
 }
 
 func TestProduct(t *testing.T) {
@@ -89,4 +89,14 @@ func TestMath(t *testing.T) {
 	require.True(t, InRange(-1, -1, 1))
 	require.False(t, InRange(10, -1, 1))
 	require.False(t, InRange(-10, -1, 1))
+}
+
+func TestMinMax(t *testing.T) {
+
+	min, max := MinMaxInts([]int{1, 2, 3, 4})
+	require.Equal(t, 1, min)
+	require.Equal(t, 4, max)
+
+	require.Equal(t, 1, MinInts([]int{1, 2, 3, 4}))
+	require.Equal(t, 4, MaxInts([]int{1, 2, 3, 4}))
 }
