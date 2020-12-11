@@ -13,7 +13,7 @@ func main() {
 
 	// re := regexp.MustCompile(`^$`)
 	numbers := []int{0}
-	for i, line := range util.LoadString("input2") {
+	for i, line := range util.LoadString("input3") {
 		num, err := strconv.Atoi(line)
 		if err != nil {
 			fmt.Printf("line %d is not a numbers. %s\n", i, line)
@@ -30,7 +30,7 @@ func main() {
 }
 
 func findBinary(numbers []int, depth int) int {
-	if len(numbers) <= 1 { //|| util.Abs(numbers[0]-numbers[len(numbers)-1]) > 3 {
+	if len(numbers) < 3 { //|| util.Abs(numbers[0]-numbers[len(numbers)-1]) > 3 {
 		renderPartition(-1, depth, numbers)
 		return 1
 	}
@@ -38,7 +38,7 @@ func findBinary(numbers []int, depth int) int {
 	for i := 1; i < len(numbers)-1; i++ {
 		if util.Abs(numbers[i-1]-numbers[i+1]) > 3 {
 			renderPartition(i, depth, numbers)
-			return findBinary(numbers[:i-1], depth+1) * findBinary(numbers[i:], depth+1)
+			return findBinary(numbers[:i], depth+1) * findBinary(numbers[i+1:], depth+1)
 		}
 	}
 	result := int(math.Pow(2, float64(len(numbers))))
