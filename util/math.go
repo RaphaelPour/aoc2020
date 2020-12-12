@@ -1,5 +1,7 @@
 package util
 
+import "math"
+
 func Abs(num int) int {
 	if num < 0 {
 		return -num
@@ -29,4 +31,8 @@ func Max(nums ...int) int {
 
 func InRange(num, min, max int) bool {
 	return num >= min && num <= max
+}
+
+func Radians(degrees float64) float64 {
+	return degrees * (math.Pi / 180)
 }
