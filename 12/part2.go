@@ -69,6 +69,11 @@ func main() {
 }
 
 func Rotate(x, y, deg int) (int, int) {
+	/*
+	 * https://en.wikipedia.org/wiki/Rotation_%28mathematics%29#Two_dimensions
+	 * x' = x*cos(alpha) - y*sin(alpha)
+	 * y' = y*cos(alpha) + x*sin(alpha)
+	 */
 	return x*int(math.Cos(util.Radians(float64(deg)))) -
 			y*int(math.Sin(util.Radians(float64(deg)))),
 		y*int(math.Cos(util.Radians(float64(deg)))) +
