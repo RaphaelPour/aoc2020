@@ -7,6 +7,21 @@ import (
 	"strings"
 )
 
+/*
+ * Least common multiple:
+ *
+ * One point in time where all busses would
+ * arrive at the same time is multiplying
+ * all departures together. But this is not necessarily
+ * the 'earliest' departure.
+ *
+ * Likewise to 2_2, this solution lacks in changing the
+ * position of each bus to zero in order to find
+ * common multiples.
+ *
+ * Idea: What if the LCM/GCD takes the index into account?
+ */
+
 func main() {
 
 	lines := util.LoadString("input2")
@@ -25,7 +40,7 @@ func main() {
 			return
 		}
 
-		fmt.Println(num, i, num-i)
+		// fmt.Println(num, i, num-i)
 		ts = append(ts, uint64(num-i))
 
 		i++

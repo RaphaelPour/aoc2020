@@ -11,6 +11,18 @@ import (
 	"time"
 )
 
+/*
+ * Same departure time:
+ *
+ * If all busses arrive at the same time,
+ * we don't need to care about the order anymore.
+ *
+ * This approach stores the input-position.
+ *
+ * Currently this solution lacks in having negative
+ * input when the input<position.
+ */
+
 var (
 	mtx       sync.Mutex
 	count     = 0
@@ -19,8 +31,8 @@ var (
 
 func main() {
 
-	lines := util.LoadString("input")
-	ts := make([]uint64, 0)
+	lines := util.LoadString("input2")
+	ts := make([]int, 0)
 	i := 0
 	for _, cell := range strings.Split(lines[1], ",") {
 
@@ -35,8 +47,7 @@ func main() {
 			return
 		}
 
-		ts = append(ts, uint64(num-i))
-
+		ts = append(ts, num-i)
 		i++
 	}
 
@@ -75,7 +86,7 @@ func main() {
 
 func worker(
 	start, end uint64,
-	ts []uint64,
+	ts []int,
 	sem *semaphore.Weighted,
 	resultCh chan uint64) {
 
@@ -95,12 +106,26 @@ func worker(
 	}
 }
 
-func checkTs(startTime uint64, ts []uint64) bool {
+func checkTs(startTime uint64, ts []int) bool {
 	for _, t := range ts {
-		if startTime%t != 0 {
+		if startTime%uint64(t) != 0 {
 			return false
 		}
 	}
 
 	return true
+}
+
+func unique(in []int) []int {
+	seen := make(map[int]bool, 0)
+	result := make([]int, 0)
+
+	for num := range in {
+
+		if _, ok := seen[num]; !ok {
+			seen[num] = true
+			result = append(result, num)
+		}
+	}
+	return result
 }
