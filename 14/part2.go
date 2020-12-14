@@ -11,14 +11,23 @@ import (
 
 var (
 	memory = map[uint64]uint64{}
-	binMap = map[bool]string{true: "1", false: "0"}
 )
 
+/* Assignment:
+ *
+ * Representation of a 'mem[address] = value' line from the input.
+ */
 type Assignment struct {
 	address string
 	value   uint64
 }
 
+/* Program:
+ *
+ * A program is a collection of assignments with the same bitmask.
+ * This is not the same as the 'program' from the AoC description
+ * which refers to the input as a whole.
+ */
 type Program struct {
 	mask    string
 	assigns []Assignment
@@ -27,52 +36,52 @@ type Program struct {
 func (p *Program) Run() {
 
 	for _, as := range p.assigns {
+		/* Indices of all 'floatings' from the bitmask */
 		floatings := make([]int, 0)
 
 		/* Calculate address bitmask */
 		addressMask := ""
 		for i, _ := range p.mask {
+
+			/* Apply the bitmask to the current assignment's
+			 * address based on the bitmask as follows:
+			 *
+			 * 0: Use the original value
+			 * 1: Use 1
+			 * X: Add the current index to the list of 'floatings'
+			 *
+			 * Note that the 'apply' happens by appending the
+			 * appropriate 0/1/X to a new string since we can't
+			 * replace a char by index in GoLang (yayyy).
+			 */
 			if p.mask[i] == '0' {
 				addressMask += string(as.address[i])
 			} else if p.mask[i] == '1' {
 				addressMask += "1"
 			} else if p.mask[i] == 'X' {
+
+				/*
+				 * This value doesn't really matter since it will be
+				 * overwritten with the 'combinatorial iterator'
+				 * below. It is set to a letter so the integer parser
+				 * fails if the replacement didn't do it's job properly
+				 * on replacing all 'floatings'.
+				 */
 				addressMask += "X"
 				floatings = append(floatings, i)
 			}
 		}
 
-		/*
-			fmt.Println("     Address:", as.address)
-			fmt.Println("        Mask:", p.mask)
-			fmt.Println("Address mask:", addressMask)
-			fmt.Println("   Floatings:", floatings)
-		*/
-
 		for k := 0; k < int(math.Pow(2, float64(len(floatings)))); k++ {
 			addr := []rune(addressMask)
 			for i, float := range floatings {
 				if k&(1<<i) != 0 {
-					// fmt.Println("Change index", float, ":", addr[float], "-> 1")
 					addr[float] = '1'
 				} else {
-					// fmt.Println("Change index", float, ":", addr[float], "-> 0")
 					addr[float] = '0'
 				}
 
-				/*
-					// Unset bit in any case
-					addr &= uint64(^(1 << (i)))
-
-					// Set bit again (if any)
-					addr |= uint64(index << (i))
-				*/
 			}
-			/*
-				fmt.Print("Final address:")
-				dumpRunes(addr)
-				fmt.Println("")
-			*/
 
 			/* FINALLY, write the value to the address */
 			numAddr, err := strconv.ParseUint(string(addr), 2, 64)
