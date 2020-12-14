@@ -2,18 +2,30 @@ package main
 
 import (
 	"fmt"
-	"math/big"
+	"math"
 	"sort"
 	"strconv"
 
 	"github.com/RaphaelPour/aoc2020/util"
+	"github.com/fatih/color"
+)
+
+var (
+	goodColor   = color.New(color.FgGreen, color.Bold)
+	badColor    = color.New(color.FgRed, color.Bold)
+	staticColor = color.New(color.FgCyan, color.Bold)
+	inputFile   = "input"
+	solutions   = map[string]int{
+		"input2": 8,
+		"input3": 19208,
+	}
 )
 
 func main() {
 
-	// re := regexp.MustCompile(`^$`)
-	numbers := make([]int, 0)
-	for i, line := range util.LoadString("input") {
+	/* Parse input. Each line is the 'joltage' (int) of an adapter */
+	numbers := []int{0}
+	for i, line := range util.LoadString(inputFile) {
 		num, err := strconv.Atoi(line)
 		if err != nil {
 			fmt.Printf("line %d is not a numbers. %s\n", i, line)
@@ -22,57 +34,77 @@ func main() {
 		numbers = append(numbers, num)
 	}
 
+	/* Based from sorted adapters, the problem can be solved by only
+	 * using or not using an adapter without the need of rearranging the
+	 * adapter any further.
+	 */
 	sort.Ints(numbers)
 
-	numbers = append(numbers, numbers[len(numbers)-1]+3)
-
-	hardcoreOutsiders := make([]int, 0)
-	ultimateOutsiders := make([]int, 0)
-	sharewareOutsiders := make([]int, 0)
-	last := 0
-	postLast := 0
-	postPostLast := 0
-	next := 0
-	for i, num := range numbers {
-		if i+1 == len(numbers) {
-			break
-		}
-		next = numbers[i+1]
-		diff1 := util.Abs(last - next)
-		diff2 := util.Abs(postLast - next)
-		diff3 := util.Abs(postPostLast - next)
-		if diff1 < 4 && diff2 < 4 && diff3 < 4 {
-			hardcoreOutsiders = append(hardcoreOutsiders, num)
-		} else if diff1 < 4 && diff2 < 4 {
-			ultimateOutsiders = append(ultimateOutsiders, num)
-		} else if diff1 < 4 && diff2 >= 4 {
-			sharewareOutsiders = append(sharewareOutsiders, num)
-		}
-		last = num
-		if i > 0 {
-			postLast = numbers[i-1]
-		}
-		if i > 1 {
-			postPostLast = numbers[i-2]
-		}
-	}
-
-	fmt.Println("len(ultimateOutsiders)=", len(ultimateOutsiders))
-	fmt.Println("len(sharewareOutsiders)=", len(sharewareOutsiders))
-	fmt.Println("len(hardcoreOutsiders)=", len(hardcoreOutsiders))
-
-	fmt.Println("Invalid:", "1125899906842623", "too low: 537395200")
-	fmt.Println("|P(ultimateOutsiders)| =", powerSetSize(ultimateOutsiders))
-	fmt.Println("|P(shrewareOutsiders)| =", powerSetSize(sharewareOutsiders))
-	fmt.Println("|P(hardcoreOutsiders)| =", powerSetSize(hardcoreOutsiders))
-
+	fmt.Println("[S]plit [R]eturn [C]ombinate")
+	fmt.Println(">>>", findBinary(numbers, 0), "<<<")
 }
 
-func powerSetSize(set []int) *big.Int {
-	sets := big.NewInt(0)
-	for size, _ := range set {
-		var result big.Int
-		sets = sets.Add(sets, result.Binomial(int64(len(set)), int64(size)))
+/* findBinary:
+ *
+ * Some adapters can't be removed since they are needed to keep
+ * the difference of the surrounding adapters lower than four.
+ *
+ * This function splits the adapters at those mandatory elements
+ * recursively with a new list of numbers having the previous and
+ * next mandatory as 'boundary' until:
+ * - only two are left: No combination possible, only mandatory left
+ * - No further mandatory left (except the first and last) -> calculate
+ *   combinations. Decrement result if the difference between first and
+ *   last is higher than 3.
+ */
+func findBinary(numbers []int, depth int) int {
+	if len(numbers) < 3 {
+		fmt.Printf("R:   1")
+		printPartition(-1, depth, numbers)
+		return 1
 	}
-	return sets
+
+	for i := 1; i < len(numbers)-1; i++ {
+		if util.Abs(numbers[i-1]-numbers[i+1]) > 3 {
+			fmt.Printf("S: %3d", numbers[i])
+			printPartition(i, depth, numbers)
+			return findBinary(numbers[:i+1], depth+1) *
+				findBinary(numbers[i:], depth+1)
+		}
+	}
+
+	/* Calculate all possible combinations of the numbers between the
+	 * first+last (mandatory) adapters: 2^|volatile adapters|
+	 * with: |volatile adapters| = |adapters|-2
+	 */
+	result := int(math.Pow(2, float64(len(numbers)-2)))
+
+	/* Remove one combination if all volatile numbers can't miss all
+	 * at once when the difference would be too high.
+	 */
+	if numbers[len(numbers)-1]-numbers[0] > 3 {
+		result--
+	}
+	fmt.Printf("C: %3d", result)
+	printPartition(-1, depth, numbers)
+	return result
+}
+
+func printPartition(index, depth int, numbers []int) {
+
+	for i := 0; i < depth; i++ {
+		fmt.Print(" ")
+	}
+
+	fmt.Print("[")
+	for k := range numbers {
+		if k == index {
+			fmt.Printf("] ")
+			staticColor.Printf("%d", numbers[k])
+			fmt.Printf(" [")
+		} else {
+			fmt.Printf("%d ", numbers[k])
+		}
+	}
+	fmt.Println("]")
 }
