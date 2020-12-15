@@ -11,14 +11,8 @@ import (
 )
 
 var (
-	goodColor   = color.New(color.FgGreen, color.Bold)
-	badColor    = color.New(color.FgRed, color.Bold)
 	staticColor = color.New(color.FgCyan, color.Bold)
 	inputFile   = "input"
-	solutions   = map[string]int{
-		"input2": 8,
-		"input3": 19208,
-	}
 )
 
 func main() {
