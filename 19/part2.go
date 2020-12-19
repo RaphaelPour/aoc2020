@@ -24,12 +24,20 @@ func main() {
 	rules := make(Rules, 0)
 	parseRules := true
 	count := 0
-	for i, line := range util.LoadString("input") {
+	for i, line := range util.LoadString("input4") {
 		if parseRules {
 			if line == "" {
 				parseRules = false
 				continue
 			}
+
+			/* HOT PATCH */
+			if strings.HasPrefix(line, "8") {
+				line = "8: 42 | 42 8"
+			} else if strings.HasPrefix(line, "11") {
+				line = "11: 42 31 | 42 11 31"
+			}
+
 			match := re.FindStringSubmatch(line)
 			if len(match) < 3 {
 				fmt.Println("Error parsing line", i, ":", line)
@@ -105,6 +113,8 @@ func main() {
 
 func parse(input string, ruleID int, rules Rules) (bool, string, error) {
 
+	/* Allow epsilon for each rule that produces itself */
+
 	if len(input) == 0 {
 		return false, "", fmt.Errorf("Parsing error: input is empty")
 	}
@@ -114,7 +124,8 @@ func parse(input string, ruleID int, rules Rules) (bool, string, error) {
 		return false, "", fmt.Errorf("Parsing error: unknown rule %d", ruleID)
 	}
 
-	// fmt.Println(ruleID, rule)
+	fmt.Println(ruleID, rule)
+	validRest := make([]string, 0)
 	for _, alt := range rule {
 		if alt.terminal {
 			accepted := string(input[0]) == alt.symbol
@@ -127,6 +138,7 @@ func parse(input string, ruleID int, rules Rules) (bool, string, error) {
 		matchedAll := true
 		rest := input
 		for _, substRule := range alt.rules {
+
 			var err error
 			var valid bool
 			valid, rest, err = parse(rest, substRule, rules)
@@ -140,8 +152,13 @@ func parse(input string, ruleID int, rules Rules) (bool, string, error) {
 		}
 
 		if matchedAll {
+			validRest = append(validRest, rest)
 			return true, rest, nil
 		}
 	}
+	if len(validRest) > 0 {
+		return true, validRest, nil
+	}
+
 	return false, input, nil
 }
