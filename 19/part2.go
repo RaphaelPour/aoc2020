@@ -32,9 +32,9 @@ func main() {
 			}
 
 			/* HOT PATCH */
-			if strings.HasPrefix(line, "8") {
+			if strings.HasPrefix(line, "8:") {
 				line = "8: 42 | 42 8"
-			} else if strings.HasPrefix(line, "11") {
+			} else if strings.HasPrefix(line, "11:") {
 				line = "11: 42 31 | 42 11 31"
 			}
 
@@ -105,18 +105,16 @@ func main() {
 		}
 	}
 
-	fmt.Println(rules)
+	// fmt.Println(rules)
 
-	fmt.Println("Too high: 130")
+	fmt.Println("Too low: 150")
 	fmt.Println(count, "matches")
 }
 
 func parse(input string, ruleID int, rules Rules) (bool, string, error) {
 
-	/* Allow epsilon for each rule that produces itself */
-
 	if len(input) == 0 {
-		return false, "", fmt.Errorf("Parsing error: input is empty")
+		return false, "", nil
 	}
 
 	rule, ok := rules[ruleID]
@@ -124,14 +122,13 @@ func parse(input string, ruleID int, rules Rules) (bool, string, error) {
 		return false, "", fmt.Errorf("Parsing error: unknown rule %d", ruleID)
 	}
 
-	fmt.Println(ruleID, rule)
-	validRest := make([]string, 0)
+	// fmt.Println(ruleID, rule)
 	for _, alt := range rule {
 		if alt.terminal {
 			accepted := string(input[0]) == alt.symbol
-			if accepted {
+			/*if accepted {
 				fmt.Printf("[CONSUME] %c from %s\n", input[0], input)
-			}
+			}*/
 			return accepted, input[1:], nil
 		}
 
@@ -152,12 +149,8 @@ func parse(input string, ruleID int, rules Rules) (bool, string, error) {
 		}
 
 		if matchedAll {
-			validRest = append(validRest, rest)
 			return true, rest, nil
 		}
-	}
-	if len(validRest) > 0 {
-		return true, validRest, nil
 	}
 
 	return false, input, nil

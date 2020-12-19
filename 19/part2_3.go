@@ -6,14 +6,13 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/fatih/color"
 )
 
-/*
- * Bottom-up approach
- */
-
 var (
-	inputFile = "input"
+	inputFile = "input4"
+	cache     = Cache{}
 )
 
 type Product struct {
@@ -23,7 +22,122 @@ type Product struct {
 }
 
 type Products []Product
+
+func (p Products) MaxLength() int {
+	max := 0
+	for _, prod := range p {
+		if len(prod.rules) > max {
+			max = len(prod.rules)
+		}
+	}
+	return max
+}
+
+func (p Products) MinLength() int {
+	min := 0
+	for _, prod := range p {
+		if len(prod.rules) < min {
+			min = len(prod.rules)
+		}
+	}
+	return min
+}
+
 type Rules map[int]Products
+
+type Cache struct {
+	rules map[int]CacheRule
+	debug bool
+}
+
+func NewCache() Cache {
+	c := Cache{}
+	c.rules = make(map[int]CacheRule, 0)
+	return c
+}
+
+type CacheRule struct {
+	badInputs           [][]int
+	maxProductionLength int
+}
+
+func (c Cache) Print(action, msg string, ruleID int, input []int) {
+	if !c.debug {
+		return
+	}
+	printer := color.New(color.FgWhite)
+	switch action {
+	case "MISS":
+		printer.Add(color.FgRed)
+	case "HIT":
+		printer.Add(color.FgGreen)
+	case "IGN", "ADD", "DUPL":
+		printer.Add(color.FgYellow)
+	}
+	printer.Printf("[%6s] %s %d %#v\n", action, msg, ruleID, input)
+}
+
+func (c Cache) IsKnownBad(ruleID int, input []int) bool {
+	cacheRule, ok := c.rules[ruleID]
+
+	if !ok {
+		c.Print("MISS", "unknown rule", ruleID, input)
+		return false
+	}
+
+	for _, badInput := range cacheRule.badInputs {
+		if len(badInput) > len(input) {
+			continue
+		}
+		hit := true
+		for i, id := range badInput {
+			if input[i] != id {
+				hit = false
+				break
+			}
+		}
+		if hit {
+			c.Print("HIT", "", ruleID, input)
+			return true
+		}
+	}
+
+	c.Print("MISS", "unknown input", ruleID, input)
+	return false
+}
+
+func (c *Cache) AddBad(ruleID int, input []int, rule Products) {
+	if c.IsKnownBad(ruleID, input) {
+		c.Print("DUPL", "", ruleID, input)
+		return
+	}
+
+	max := rule.MaxLength()
+
+	if max > len(input) {
+		c.Print("IGN", "input is too short", ruleID, input)
+		return
+	}
+
+	if _, ok := c.rules[ruleID]; !ok {
+		cr := CacheRule{}
+		cr.maxProductionLength = max
+		cr.badInputs = make([][]int, 1)
+		cr.badInputs[0] = make([]int, max)
+		copy(cr.badInputs[0], input[:max])
+		c.rules[ruleID] = cr
+		return
+	} else {
+		cr := c.rules[ruleID]
+		newInput := make([]int, cr.maxProductionLength)
+		copy(newInput, input[:cr.maxProductionLength])
+
+		cr.badInputs = append(cr.badInputs, newInput)
+		c.rules[ruleID] = cr
+	}
+	c.Print("ADD", "", ruleID, input)
+
+}
 
 func main() {
 
@@ -41,9 +155,9 @@ func main() {
 
 			/* HOT PATCH */
 			if strings.HasPrefix(line, "8:") {
-				line = "8: 42 | 1 42 8 | 14 42 8"
+				line = "8: 42 | 42 8"
 			} else if strings.HasPrefix(line, "11:") {
-				line = "11: 42 31 | 1 42 11 31 | 14 42 11 31"
+				line = "11: 42 31 | 42 11 31"
 			}
 
 			match := re.FindStringSubmatch(line)
@@ -118,6 +232,7 @@ func main() {
 
 func parse(input string, goal int, rules Rules) (bool, error) {
 
+	cache = NewCache()
 	convertedInput := make([]int, 0)
 
 	/* Find rule for each terminal symbol */
@@ -157,6 +272,11 @@ func find(input []int, goal int, rules Rules) bool {
 		for ruleID, products := range rules {
 			/* Skip all rules with terminal symbols */
 			if len(products) == 1 && products[0].terminal {
+				continue
+			}
+
+			/* Ask cache if input+rule is a dead end */
+			if cache.IsKnownBad(ruleID, input[i:]) {
 				continue
 			}
 
@@ -233,6 +353,12 @@ func find(input []int, goal int, rules Rules) bool {
 				}
 				// fmt.Println("[NOT OK]", input, "-/->", reducedInput)
 			}
+
+			/*
+			 * No alternative of the rule matched. Add it to the
+			 * cache of bad rules.
+			 */
+			cache.AddBad(ruleID, input[i:], products)
 		}
 	}
 

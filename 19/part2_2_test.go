@@ -6,7 +6,14 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func Setup() {
+	cache = NewCache()
+	cache.debug = true
+}
+
 func TestFind1(t *testing.T) {
+	Setup()
+
 	input := []int{1}
 	goal := 0
 	rules := Rules{0: Products{Product{rules: []int{1}}}}
@@ -14,6 +21,8 @@ func TestFind1(t *testing.T) {
 }
 
 func TestFind2(t *testing.T) {
+	Setup()
+
 	input := []int{1, 1}
 	goal := 0
 	rules := Rules{0: Products{Product{rules: []int{1, 1}}}}
@@ -21,6 +30,8 @@ func TestFind2(t *testing.T) {
 }
 
 func TestFind3(t *testing.T) {
+	Setup()
+
 	input := []int{2}
 	goal := 0
 	rules := Rules{
@@ -31,6 +42,8 @@ func TestFind3(t *testing.T) {
 }
 
 func TestFind4(t *testing.T) {
+	Setup()
+
 	input := []int{1, 2}
 	goal := 0
 	rules := Rules{
@@ -41,6 +54,8 @@ func TestFind4(t *testing.T) {
 }
 
 func TestFind5(t *testing.T) {
+	Setup()
+
 	/* Test alternatives where first one leads to the goal */
 	input := []int{1, 2}
 	goal := 0
@@ -54,6 +69,7 @@ func TestFind5(t *testing.T) {
 }
 
 func TestFind6(t *testing.T) {
+	Setup()
 
 	/* Test alternatives where second one leads to the goal */
 	input := []int{1, 2}
@@ -68,6 +84,8 @@ func TestFind6(t *testing.T) {
 }
 
 func TestFind7(t *testing.T) {
+	Setup()
+
 	/* Test deeper alternative productions */
 	input := []int{4, 5}
 	goal := 0
@@ -89,6 +107,8 @@ func TestFind7(t *testing.T) {
 }
 
 func TestFind8(t *testing.T) {
+	Setup()
+
 	/* Test loops */
 	input := []int{2, 2, 1}
 	goal := 0
@@ -105,6 +125,8 @@ func TestFind8(t *testing.T) {
 }
 
 func TestFindExample1(t *testing.T) {
+	Setup()
+
 	input := []int{1, 3, 1}
 	goal := 0
 	rules := Rules{
@@ -118,6 +140,8 @@ func TestFindExample1(t *testing.T) {
 }
 
 func TestFindBad1(t *testing.T) {
+	Setup()
+
 	/* Empty input */
 	input := []int{}
 	goal := 0
@@ -126,6 +150,8 @@ func TestFindBad1(t *testing.T) {
 }
 
 func TestFindBad2(t *testing.T) {
+	Setup()
+
 	/* Unreachable goal */
 	input := []int{1}
 	goal := 10
@@ -134,6 +160,8 @@ func TestFindBad2(t *testing.T) {
 }
 
 func TestFindBad3(t *testing.T) {
+	Setup()
+
 	/* Missing rules */
 	input := []int{1}
 	goal := 0
@@ -142,6 +170,8 @@ func TestFindBad3(t *testing.T) {
 }
 
 func TestFindBad4(t *testing.T) {
+	Setup()
+
 	/* Input not matching any rule */
 	input := []int{2}
 	goal := 0
@@ -150,6 +180,8 @@ func TestFindBad4(t *testing.T) {
 }
 
 func TestFindBad5(t *testing.T) {
+	Setup()
+
 	/* No rule reducing two variables */
 	input := []int{2, 2}
 	goal := 0
@@ -158,4 +190,19 @@ func TestFindBad5(t *testing.T) {
 		1: Products{Product{rules: []int{2}}},
 	}
 	require.False(t, find(input, goal, rules))
+}
+
+func TestCache1(t *testing.T) {
+	Setup()
+
+	require.False(t, cache.IsKnownBad(0, []int{1}))
+}
+
+func TestCache2(t *testing.T) {
+	Setup()
+
+	cache.AddBad(0, []int{1}, Products{
+		Product{rules: []int{1}},
+	})
+	require.True(t, cache.IsKnownBad(0, []int{1}))
 }
