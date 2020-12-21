@@ -9,7 +9,9 @@ import (
 
 var (
 	inputFile = "input2"
+)
 
+const (
 	LEFT = iota
 	RIGHT
 	TOP
@@ -65,17 +67,22 @@ func (r Row) String() string {
 }
 
 type Image struct {
-	id                       int
-	data                     []Row
-	left, right, top, bottom Row
-	sides                    []Row
-	flippedSides             []Row
-	width, height            int
+	id                           int
+	data                         []Row
+	left, right, top, bottom     Row
+	sides                        []Row
+	flippedSides                 []Row
+	width, height                int
+	leftN, rightN, topN, bottomN int
 }
 
 func NewImage() Image {
 	img := Image{}
 	img.data = make([]Row, 0)
+	img.leftN = -1
+	img.rightN = -1
+	img.topN = -1
+	img.bottomN = -1
 	return img
 }
 
@@ -96,34 +103,31 @@ func (img *Image) FlipY() {
 	img.Process()
 }
 
-func (img *Image) RotateRight() {
-	newData := make([]Row, 0)
+func (img *Image) Transpose() {
+	newData := make([]Row, img.width)
+	for i := 0; i < img.width; i++ {
+		newData[i] = make(Row, img.height)
+	}
 
-	for i, _ := range img.data {
-		newRow := make(Row, len(img.data))
-		for j, _ := range img.data[i] {
-			newRow[j] = img.data[len(img.data)-j-1][i]
+	/* Transpose */
+	for y := 0; y < img.height; y++ {
+		for x := 0; x < img.width; x++ {
+			newData[x][y] = img.data[y][x]
 		}
-		newData = append(newData, newRow)
 	}
 
 	img.data = newData
 	img.Process()
 }
 
+func (img *Image) RotateRight() {
+	img.Transpose()
+	img.FlipX()
+}
+
 func (img *Image) RotateLeft() {
-	newData := make([]Row, 0)
-
-	for i, _ := range img.data {
-		newRow := make(Row, len(img.data))
-		for j, _ := range img.data[i] {
-			newRow[len(img.data)-j-1] = img.data[len(img.data)-j-1][i]
-		}
-		newData = append([]Row{newRow}, newData...)
-	}
-
-	img.data = newData
-	img.Process()
+	img.Transpose()
+	img.FlipY()
 }
 
 func (img *Image) AddRow(row string) error {
@@ -153,27 +157,72 @@ func (img *Image) AddRow(row string) error {
 	return nil
 }
 
-func (img Image) MatchBorder(other Image) int  {
+func (img Image) Neighbours() int {
+	count := 0
+	if img.leftN > -1 {
+		count++
+	}
+	if img.rightN > -1 {
+		count++
+	}
+	if img.topN > -1 {
+		count++
+	}
+	if img.bottomN > -1 {
+		count++
+	}
+	return count
+}
 
-	if img.left == other.right {
+func (img Image) IsCorner() bool {
+	return img.Neighbours() == 2
+}
+
+func (img Image) MatchBorder(other Image) int {
+
+	if img.left.Equals(other.right) {
 		return LEFT
 	}
 
-	if img.right == other.left {
+	if img.right.Equals(other.left) {
 		return RIGHT
 	}
 
-	if img.top == other.bottom {
+	if img.top.Equals(other.bottom) {
 		return TOP
 	}
 
-	if img.bottom == other.top {
+	if img.bottom.Equals(other.top) {
 		return BOTTOM
 	}
 
 	return -1
 }
 
+func (img *Image) ProcessBorder(other Image) int {
+
+	if img.left.Equals(other.right) {
+		img.leftN = other.id
+		return LEFT
+	}
+
+	if img.right.Equals(other.left) {
+		img.rightN = other.id
+		return RIGHT
+	}
+
+	if img.top.Equals(other.bottom) {
+		img.topN = other.id
+		return TOP
+	}
+
+	if img.bottom.Equals(other.top) {
+		img.bottomN = other.id
+		return BOTTOM
+	}
+
+	return -1
+}
 func (img *Image) Process() error {
 	if img.height != img.width {
 		return fmt.Errorf(
@@ -228,6 +277,92 @@ func (imgs Images) String() string {
 	return out
 }
 
+func Resolve(images Images, width, height int) int {
+
+	order := make([][]int, height)
+	for i := range order {
+		order[i] = make([]int, width)
+	}
+
+	/* Find and store border connections */
+	for i, imgA := range images {
+		for j, imgB := range images {
+			if i == j {
+				continue
+			}
+
+			imgA.ProcessBorder(imgB)
+			images[i] = imgA
+			fmt.Println(images[i].Neighbours())
+		}
+	}
+
+	for _, img := range images {
+		fmt.Println(img.id, img.Neighbours())
+	}
+	return 0
+
+	/* Find first corner */
+	foundCorner := false
+	for id, img := range images {
+		if img.IsCorner() {
+			fmt.Println("Found corner")
+			order[0][0] = id
+			foundCorner = true
+			break
+		}
+	}
+
+	if !foundCorner {
+		fmt.Println("Couldn't find any corner")
+		return -1
+	}
+
+	/* Arrange images */
+	x, y := 1, 0
+	dir := LEFT
+	lastID := order[0][0]
+	for {
+		if y >= len(order) {
+			break
+		}
+
+		if x < 0 {
+			x = 0
+			y++
+			order[y][x] = images[lastID].bottomN
+			lastID = order[y][x]
+			dir = RIGHT
+			continue
+		} else if x >= width {
+			x = width - 1
+			y++
+			order[y][x] = images[lastID].bottomN
+			lastID = order[y][x]
+			dir = LEFT
+			continue
+		}
+
+		if dir == RIGHT {
+			order[y][x] = images[lastID].rightN
+			x++
+		} else if dir == LEFT {
+			order[y][x] = images[lastID].leftN
+			x--
+		} else {
+			fmt.Println("Invalid direction", dir)
+		}
+
+		lastID = order[y][x]
+	}
+
+	for i := range order {
+		fmt.Println(order[i])
+	}
+
+	return 1
+}
+
 func main() {
 
 	re := regexp.MustCompile(`^Tile (\d+):$`)
@@ -276,6 +411,11 @@ func main() {
 		return
 	}
 	images[id] = img
+	height := images[id].height
+	width := images[id].width
 
 	/* Arrange puzzle */
+	fmt.Println("Width:", width)
+	fmt.Println("Height:", height)
+	fmt.Println(Resolve(images, width, height))
 }
