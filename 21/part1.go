@@ -13,6 +13,10 @@ var (
 	inputFile = "input"
 )
 
+/* Food:
+ *
+ * Corresponds to a line from the input.
+ */
 type Food struct {
 	ingredients []string
 	allergens   []string
@@ -44,6 +48,12 @@ func (f Food) String() string {
 		strings.Join(f.allergens, ", "),
 	)
 }
+
+/* Foods:
+ *
+ * Corresponds to the whole input. Includes a map of all found
+ * allergen to food associations.
+ */
 
 type Foods struct {
 	list                   []Food
@@ -113,40 +123,6 @@ func (f Foods) RecursiveInference(depth int, intersected []int, ins, als []strin
 			Intersect(als, f.list[i].allergens),
 		); ok {
 			return in, al, true
-		}
-	}
-
-	return "", "", false
-}
-
-func (f Foods) NextInference(n int) (string, string, bool) {
-
-	for i := 0; i < len(f.list); i++ {
-		for j := i + 1; j < len(f.list); j++ {
-			ingredients := f.list[i].ingredients
-			allergens := f.list[i].allergens
-
-			/*
-			 * Check for food which has only one ingredients and
-			 * allergen left. This one can be directly processed
-			 * without further inferences.
-			 */
-			if len(ingredients) == 1 &&
-				len(allergens) == 1 {
-				return ingredients[0], allergens[0], true
-			}
-			for k := j; k < len(f.list) && k <= j+n; k++ {
-				ingredients = Intersect(ingredients, f.list[k].ingredients)
-				allergens = Intersect(allergens, f.list[k].allergens)
-
-				/* Abort if there is nothing to infer about */
-				if len(ingredients) == 0 || len(allergens) == 0 {
-					break
-				} else if len(ingredients) == 1 &&
-					len(allergens) == 1 {
-					return ingredients[0], allergens[0], true
-				}
-			}
 		}
 	}
 
