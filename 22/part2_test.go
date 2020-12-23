@@ -124,7 +124,7 @@ func TestSubPlayer(t *testing.T) {
 	p := NewPlayer()
 	p.cards = []int{1, 2, 3}
 
-	sp := p.NewSubPlayer()
+	sp := p.NewSubPlayer(2)
 
 	require.Equal(t, p.cards, []int{1, 2, 3})
 	require.Equal(t, sp.cards, []int{2, 3})
@@ -144,7 +144,7 @@ func TestSubGame(t *testing.T) {
 	g.p1.cards = []int{1, 2, 3}
 	g.p2.cards = []int{4, 5, 6}
 
-	sg := g.NewSubGame()
+	sg := g.NewSubGame(2, 2)
 
 	require.Equal(t, sg.p1.cards, []int{2, 3})
 	require.Equal(t, sg.p2.cards, []int{5, 6})
