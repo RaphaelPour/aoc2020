@@ -224,5 +224,5 @@ func main() {
 
 	game.Play(0)
 
-	fmt.Println(game.WinnersScore())
+	fmt.Println("\n", game.WinnersScore())
 }
