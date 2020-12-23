@@ -6,3 +6,6 @@
 *.test
 part1
 part2
+parts
+*.out
+*.cov
