@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"runtime/pprof"
 	"strconv"
 	"strings"
 	"time"
@@ -193,7 +195,17 @@ func (g Game) WinnersScore() int {
 
 func main() {
 
-	// re := regexp.MustCompile(`^$`)
+	f, err := os.Create("22.profile")
+	if err != nil {
+		fmt.Println("could not create CPU profile: ", err)
+		return
+	}
+	defer f.Close() // error handling omitted for example
+	if err := pprof.StartCPUProfile(f); err != nil {
+		fmt.Println("could not start CPU profile: ", err)
+		return
+	}
+	defer pprof.StopCPUProfile()
 
 	player1 := NewPlayer()
 	player2 := NewPlayer()
