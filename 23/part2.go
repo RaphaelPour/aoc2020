@@ -2,10 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
-	"os"
-	"runtime/pprof"
-	"time"
 
 	"github.com/RaphaelPour/aoc2020/util"
 )
@@ -15,6 +11,21 @@ var (
 	inputs   = map[string][]int{
 		"input":  []int{7, 3, 9, 8, 6, 2, 5, 4, 1},
 		"input2": []int{3, 8, 9, 1, 2, 5, 4, 6, 7},
+	}
+	rounds = map[string][][]int{
+		"input2": {
+			{3, 8, 9, 1, 2, 5, 4, 6, 7},
+			{3, 2, 8, 9, 1, 5, 4, 6, 7},
+			{3, 2, 5, 4, 6, 7, 8, 9, 1},
+			{7, 2, 5, 8, 9, 1, 3, 4, 6},
+			{3, 2, 5, 8, 4, 6, 7, 9, 1},
+			{9, 2, 5, 8, 4, 1, 3, 6, 7},
+			{7, 2, 5, 8, 4, 1, 9, 3, 6},
+			{8, 3, 6, 7, 4, 1, 9, 2, 5},
+			{7, 4, 1, 5, 8, 3, 9, 2, 6},
+			{5, 7, 4, 1, 8, 3, 9, 2, 6},
+			{5, 8, 3, 7, 4, 1, 9, 2, 6},
+		},
 	}
 )
 
@@ -101,14 +112,24 @@ func (c Circle) DestinationCupIndex(goal int) int {
 func (c *Circle) Next() error {
 
 	currentCup := c.cups[c.currentIndex]
+	// fmt.Println("current:", currentCup)
+
+	// fmt.Println(c)
 
 	picked := c.Pop3((c.currentIndex + 1) % len(c.cups))
+	/* fmt.Print("pick up: ")
+	for i := range picked {
+		fmt.Printf("%d ", picked[i])
+	}
+	fmt.Println("")*/
 
 	destIndex := c.DestinationCupIndex(currentCup)
 	if destIndex == -1 {
 		return fmt.Errorf("Couldn't find any destination cup... Wanted %d", c.cups[c.currentIndex])
 	}
 	dest := c.cups[destIndex]
+	// fmt.Println("destination:", dest)
+	// c.Pop(destIndex)
 
 	for i := 0; i < len(c.cups); i++ {
 		if c.cups[i] == dest {
@@ -118,10 +139,12 @@ func (c *Circle) Next() error {
 	}
 
 	c.Insert3(destIndex+1, picked)
+	//c.Insert(dest, (c.currentIndex+1)%len(c.cups))
 
 	c.AlignCurrentIndex(currentCup)
 	c.currentIndex = (c.currentIndex + 1) % len(c.cups)
 
+	// fmt.Println("")
 	return nil
 }
 
@@ -142,39 +165,66 @@ func (c Circle) Order() string {
 	return result
 }
 
-func main() {
-	f, err := os.Create(fmt.Sprintf("part1.profile"))
-	if err != nil {
-		log.Fatal(err)
+func (c Circle) CupsAfterOne() int {
+	oneIndex := 0
+	for i := range c.cups {
+		if c.cups[i] == 1 {
+			oneIndex = i
+			break
+		}
 	}
-	pprof.StartCPUProfile(f)
-	defer pprof.StopCPUProfile()
+
+	cup1 := c.cups[oneIndex+1%len(c.cups)]
+	cup2 := c.cups[oneIndex+2%len(c.cups)]
+
+	fmt.Println("Next cups after 1:", cup1, cup2)
+
+	return cup1 * cup2
+}
+
+func EqualSets(a, b []int) bool {
+	if len(a) != len(b) {
+		return false
+	}
+
+	for i := range a {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+	return true
+}
+
+func main() {
 
 	circle := Circle{cups: inputs[inputKey]}
-	start := time.Now()
-	sum := int64(0)
-	max := int64(0)
-	min := int64(10000.0)
-	avg := 0.0
+
+	next := util.Max(circle.cups...) + 1
+	for len(circle.cups) < 1000000 {
+		circle.cups = append(circle.cups, next)
+		next++
+	}
+
 	for i := 0; i < 10000000; i++ {
+		if i%100 == 0 {
+			fmt.Printf("\r%.5f%%", 100.0/float64(10000000)*float64(i))
+		}
+		/*if !EqualSets(circle.cups, rounds[inputKey][i]) {
+			fmt.Println("Expected:", rounds[inputKey][i])
+			fmt.Println("     Got:", circle.cups)
+			return
+		}*/
 		if err := circle.Next(); err != nil {
 			fmt.Println(err)
 			return
 		}
 
-		duration := time.Since(start).Nanoseconds()
-		sum += duration
-		if duration > max {
-			max = duration
-		} else if duration < min {
-			min = duration
-		}
-
-		avg += float64(duration) / 100.0
-
-		start = time.Now()
 	}
-	fmt.Printf("total=%dns, min=%dns, max=%dns, avg=%fns\n",
-		sum, min, max, avg)
-	fmt.Println(circle.Order())
+
+	fmt.Println("-- final --")
+	fmt.Println(circle)
+	//fmt.Println(">>>", circle.Order(), "<<<")
+
+	//fmt.Println("Wrong: 9,4,2")
+	fmt.Println(">>>", circle.CupsAfterOne(), "<<<")
 }
