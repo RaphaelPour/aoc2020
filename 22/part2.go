@@ -31,10 +31,10 @@ func NewPlayer() Player {
 	return p
 }
 
-func (p Player) NewSubPlayer() Player {
+func (p Player) NewSubPlayer(subCardCount int) Player {
 	other := Player{}
-	other.cards = make([]int, len(p.cards)-1)
-	copy(other.cards, p.cards[1:])
+	other.cards = make([]int, subCardCount)
+	copy(other.cards, p.cards[1:subCardCount+1])
 	return other
 }
 
@@ -44,6 +44,10 @@ func (p Player) String() string {
 		out += fmt.Sprintf("%d ", card)
 	}
 	return out
+}
+
+func (p Player) CanGoRecursive() bool {
+	return len(p.cards)-1 >= p.cards[0]
 }
 
 func (p *Player) PutFirstCardToBack() {
@@ -66,21 +70,22 @@ func (p *Player) RemoveFirstCard() int {
 
 type Game struct {
 	p1, p2  Player
-	history [][]int
+	history map[string]bool
 }
 
 func NewGame() Game {
 	g := Game{}
 	g.p1 = NewPlayer()
 	g.p2 = NewPlayer()
-
+	g.history = make(map[string]bool, 0)
 	return g
 }
 
-func (g Game) NewSubGame() Game {
+func (g Game) NewSubGame(p1SubCardCount, p2SubCardCount int) Game {
 	other := Game{}
-	other.p1 = g.p1.NewSubPlayer()
-	other.p2 = g.p2.NewSubPlayer()
+	other.p1 = g.p1.NewSubPlayer(p1SubCardCount)
+	other.p2 = g.p2.NewSubPlayer(p2SubCardCount)
+	other.history = make(map[string]bool, 0)
 	return other
 }
 
@@ -89,43 +94,16 @@ func (g Game) IsTurnReocurring() bool {
 		return false
 	}
 
-	for _, entry := range g.history {
-		if len(entry) != len(g.p1.cards)+len(g.p2.cards)+1 {
-			continue
-		}
+	_, ok := g.history[g.CurrentTurnID()]
+	return ok
+}
 
-		match := true
-		for i := 0; i < len(g.p1.cards); i++ {
-			if entry[i] != g.p1.cards[i] {
-				match = false
-				break
-			}
-		}
-
-		if !match || entry[len(g.p1.cards)] != -1 {
-			continue
-		}
-
-		for i := 0; i < len(g.p2.cards); i++ {
-			if entry[len(g.p1.cards)+1+i] != g.p2.cards[i] {
-				match = false
-				break
-			}
-		}
-		if match {
-			return true
-		}
-	}
-
-	return false
+func (g Game) CurrentTurnID() string {
+	return fmt.Sprintf("%v%v", g.p1.cards, g.p2.cards)
 }
 
 func (g *Game) AddTurnToHistory() {
-	entry := make([]int, len(g.p1.cards)+len(g.p2.cards)+1)
-	copy(entry, g.p1.cards)
-	entry[len(g.p1.cards)] = -1
-	copy(entry[len(g.p1.cards)+1:], g.p2.cards)
-	g.history = append(g.history, entry)
+	g.history[g.CurrentTurnID()] = true
 }
 
 func (g Game) Print(depth int, msg string) {
@@ -159,11 +137,10 @@ func (g *Game) Play(depth int) int {
 		 * Check if each player has at least as many cards remaining
 		 * as the top card
 		 */
-		if len(g.p1.cards)-1 >= g.p1.cards[0] &&
-			len(g.p2.cards)-1 >= g.p2.cards[0] {
+		if g.p1.CanGoRecursive() && g.p2.CanGoRecursive() {
 			g.Print(depth, "New Subgame")
 			/* Go into recursion */
-			g2 := g.NewSubGame()
+			g2 := g.NewSubGame(g.p1.cards[0], g.p2.cards[0])
 
 			winner := g2.Play(depth + 1)
 			if winner == PLAYER1 {
