@@ -2,6 +2,10 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"os"
+	"runtime/pprof"
+	"time"
 
 	"github.com/RaphaelPour/aoc2020/util"
 )
@@ -11,21 +15,6 @@ var (
 	inputs   = map[string][]int{
 		"input":  []int{7, 3, 9, 8, 6, 2, 5, 4, 1},
 		"input2": []int{3, 8, 9, 1, 2, 5, 4, 6, 7},
-	}
-	rounds = map[string][][]int{
-		"input2": {
-			{3, 8, 9, 1, 2, 5, 4, 6, 7},
-			{3, 2, 8, 9, 1, 5, 4, 6, 7},
-			{3, 2, 5, 4, 6, 7, 8, 9, 1},
-			{7, 2, 5, 8, 9, 1, 3, 4, 6},
-			{3, 2, 5, 8, 4, 6, 7, 9, 1},
-			{9, 2, 5, 8, 4, 1, 3, 6, 7},
-			{7, 2, 5, 8, 4, 1, 9, 3, 6},
-			{8, 3, 6, 7, 4, 1, 9, 2, 5},
-			{7, 4, 1, 5, 8, 3, 9, 2, 6},
-			{5, 7, 4, 1, 8, 3, 9, 2, 6},
-			{5, 8, 3, 7, 4, 1, 9, 2, 6},
-		},
 	}
 )
 
@@ -69,17 +58,22 @@ func (c *Circle) Pop3(index int) []int {
 }
 
 func (c *Circle) Insert(cup, index int) {
-	cups := make([]int, len(c.cups)+1)
+	/*cups := make([]int, len(c.cups)+1)
 	copy(cups, c.cups[:index])
 	cups[index] = cup
 	copy(cups[index+1:], c.cups[index:])
 	c.cups = cups
+	*/
+	c.cups = append(c.cups, -1)
+	copy(c.cups[index+1:], c.cups[index:])
+	c.cups[index] = cup
+
 }
 
 func (c *Circle) Insert3(index int, cups []int) {
-	for i := range cups {
-		c.Insert(cups[i], index+i)
-	}
+	c.Insert(cups[0], index+0)
+	c.Insert(cups[1], index+1)
+	c.Insert(cups[2], index+2)
 }
 
 func (c *Circle) AlignCurrentIndex(cup int) {
@@ -112,24 +106,14 @@ func (c Circle) DestinationCupIndex(goal int) int {
 func (c *Circle) Next() error {
 
 	currentCup := c.cups[c.currentIndex]
-	// fmt.Println("current:", currentCup)
-
-	// fmt.Println(c)
 
 	picked := c.Pop3((c.currentIndex + 1) % len(c.cups))
-	/* fmt.Print("pick up: ")
-	for i := range picked {
-		fmt.Printf("%d ", picked[i])
-	}
-	fmt.Println("")*/
 
 	destIndex := c.DestinationCupIndex(currentCup)
 	if destIndex == -1 {
 		return fmt.Errorf("Couldn't find any destination cup... Wanted %d", c.cups[c.currentIndex])
 	}
 	dest := c.cups[destIndex]
-	// fmt.Println("destination:", dest)
-	// c.Pop(destIndex)
 
 	for i := 0; i < len(c.cups); i++ {
 		if c.cups[i] == dest {
@@ -139,12 +123,10 @@ func (c *Circle) Next() error {
 	}
 
 	c.Insert3(destIndex+1, picked)
-	//c.Insert(dest, (c.currentIndex+1)%len(c.cups))
 
 	c.AlignCurrentIndex(currentCup)
 	c.currentIndex = (c.currentIndex + 1) % len(c.cups)
 
-	// fmt.Println("")
 	return nil
 }
 
@@ -174,57 +156,41 @@ func (c Circle) CupsAfterOne() int {
 		}
 	}
 
-	cup1 := c.cups[oneIndex+1%len(c.cups)]
-	cup2 := c.cups[oneIndex+2%len(c.cups)]
+	cup1 := c.cups[(oneIndex+1)%len(c.cups)]
+	cup2 := c.cups[(oneIndex+2)%len(c.cups)]
 
 	fmt.Println("Next cups after 1:", cup1, cup2)
 
 	return cup1 * cup2
 }
-
-func EqualSets(a, b []int) bool {
-	if len(a) != len(b) {
-		return false
-	}
-
-	for i := range a {
-		if a[i] != b[i] {
-			return false
-		}
-	}
-	return true
-}
-
 func main() {
+	f, err := os.Create(fmt.Sprintf("part2_%s.profile", time.Now().Format(time.RFC3339)))
+	if err != nil {
+		log.Fatal(err)
+	}
+	pprof.StartCPUProfile(f)
+	defer pprof.StopCPUProfile()
 
-	circle := Circle{cups: inputs[inputKey]}
+	cups := make([]int, 1000000)
+	copy(cups, inputs[inputKey])
 
-	next := util.Max(circle.cups...) + 1
-	for len(circle.cups) < 1000000 {
-		circle.cups = append(circle.cups, next)
+	next := util.Max(inputs[inputKey]...) + 1
+	for i := len(inputs[inputKey]); i < len(cups); i++ {
+		cups[i] = next
 		next++
 	}
 
+	circle := Circle{cups: cups}
+
 	for i := 0; i < 10000000; i++ {
-		if i%100 == 0 {
-			fmt.Printf("\r%.5f%%", 100.0/float64(10000000)*float64(i))
+		if i%100000 == 0 {
+			fmt.Print(".")
 		}
-		/*if !EqualSets(circle.cups, rounds[inputKey][i]) {
-			fmt.Println("Expected:", rounds[inputKey][i])
-			fmt.Println("     Got:", circle.cups)
-			return
-		}*/
 		if err := circle.Next(); err != nil {
 			fmt.Println(err)
 			return
 		}
-
 	}
-
-	fmt.Println("-- final --")
-	fmt.Println(circle)
-	//fmt.Println(">>>", circle.Order(), "<<<")
-
-	//fmt.Println("Wrong: 9,4,2")
+	//fmt.Println(circle.Order())
 	fmt.Println(">>>", circle.CupsAfterOne(), "<<<")
 }
