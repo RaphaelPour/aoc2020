@@ -23,21 +23,12 @@ func main() {
 	terminalRe := regexp.MustCompile(`"([a-z])"`)
 	rules := make(Rules, 0)
 	parseRules := true
-	count := 0
-	for i, line := range util.LoadString("input4") {
+	for i, line := range util.LoadString("input") {
 		if parseRules {
 			if line == "" {
 				parseRules = false
 				continue
 			}
-
-			/* HOT PATCH */
-			if strings.HasPrefix(line, "8:") {
-				line = "8: 42 | 42 8"
-			} else if strings.HasPrefix(line, "11:") {
-				line = "11: 42 31 | 42 11 31"
-			}
-
 			match := re.FindStringSubmatch(line)
 			if len(match) < 3 {
 				fmt.Println("Error parsing line", i, ":", line)
@@ -88,70 +79,55 @@ func main() {
 			}
 
 			rules[ruleID] = products
-		} else {
-			valid, rest, err := parse(line, 0, rules)
-
-			if err != nil {
-				fmt.Println(err)
-				return
-			}
-
-			if valid && len(rest) == 0 {
-				fmt.Println("[ MATCH ]", line)
-				count++
-			} else {
-				fmt.Println("[INVALID]", line)
-			}
 		}
 	}
 
-	// fmt.Println(rules)
+	_, err := generate(0, rules)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 
-	fmt.Println("Too low: 150")
-	fmt.Println(count, "matches")
+	// fmt.Println(strings.Join(generated, "\n"))
 }
 
-func parse(input string, ruleID int, rules Rules) (bool, string, error) {
-
-	if len(input) == 0 {
-		return false, "", nil
-	}
+func generate(ruleID int, rules Rules) ([]string, error) {
+	result := make([]string, 0)
 
 	rule, ok := rules[ruleID]
 	if !ok {
-		return false, "", fmt.Errorf("Parsing error: unknown rule %d", ruleID)
+		return nil, fmt.Errorf("Parsing error: unknown rule %d", ruleID)
 	}
 
-	// fmt.Println(ruleID, rule)
 	for _, alt := range rule {
 		if alt.terminal {
-			accepted := string(input[0]) == alt.symbol
-			/*if accepted {
-				fmt.Printf("[CONSUME] %c from %s\n", input[0], input)
-			}*/
-			return accepted, input[1:], nil
+			result = append(result, alt.symbol)
+			continue
 		}
 
-		matchedAll := true
-		rest := input
-		for _, substRule := range alt.rules {
-
-			var err error
-			var valid bool
-			valid, rest, err = parse(rest, substRule, rules)
+		subResult := make([]string, 0)
+		for _, altID := range alt.rules {
+			generated, err := generate(altID, rules)
 			if err != nil {
-				return false, input, err
+				return nil, err
 			}
-			if !valid {
-				matchedAll = false
-				break
+
+			if len(subResult) == 0 {
+				subResult = generated
+			} else {
+				newResult := make([]string, len(subResult)*len(generated))
+				index := 0
+				for _, a := range subResult {
+					for _, b := range generated {
+						newResult[index] = a + b
+						index++
+					}
+				}
+				subResult = newResult
 			}
 		}
 
-		if matchedAll {
-			return true, rest, nil
-		}
+		result = append(result, subResult...)
 	}
-
-	return false, input, nil
+	return result, nil
 }

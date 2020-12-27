@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	inputFile = "input4"
+	inputFile = "input"
 	cache     = Cache{}
 )
 
@@ -154,11 +154,12 @@ func main() {
 			}
 
 			/* HOT PATCH */
-			if strings.HasPrefix(line, "8:") {
-				line = "8: 42 | 42 8"
-			} else if strings.HasPrefix(line, "11:") {
-				line = "11: 42 31 | 42 11 31"
-			}
+			/*
+				if strings.HasPrefix(line, "8:") {
+					line = "8: 42 | 42 8"
+				} else if strings.HasPrefix(line, "11:") {
+					line = "11: 42 31 | 42 11 31"
+				}*/
 
 			match := re.FindStringSubmatch(line)
 			if len(match) < 3 {

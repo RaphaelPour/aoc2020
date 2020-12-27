@@ -40,11 +40,12 @@ func main() {
 			}
 
 			/* HOT PATCH */
-			if strings.HasPrefix(line, "8:") {
-				line = "8: 42 | 1 42 8 | 14 42 8"
-			} else if strings.HasPrefix(line, "11:") {
-				line = "11: 42 31 | 1 42 11 31 | 14 42 11 31"
-			}
+			/*
+				if strings.HasPrefix(line, "8:") {
+					line = "8: 42 | 1 42 8 | 14 42 8"
+				} else if strings.HasPrefix(line, "11:") {
+					line = "11: 42 31 | 1 42 11 31 | 14 42 11 31"
+				}*/
 
 			match := re.FindStringSubmatch(line)
 			if len(match) < 3 {
