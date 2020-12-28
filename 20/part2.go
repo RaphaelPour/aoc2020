@@ -19,12 +19,13 @@ const (
 )
 
 /*
- * TODO:
+ * ## Problems
  *
- * [x] Add image flip
- * [x] Add image rotate
- * [ ] MatchAny: No flip/rotate, return match
+ * By finding connected border pairwise all images have two matches. It appears
+ * that there are duplicate sides.
  *
+ * The neighbour count doesn't seem correct. There might be some flip/rotate
+ * missing.
  */
 
 type Row []bool
@@ -45,6 +46,12 @@ func (r Row) Equals(other Row) bool {
 		}
 	}
 	return true
+}
+
+func (r Row) Clone() Row {
+	other := make(Row, len(r))
+	copy(other, r)
+	return r
 }
 
 func (r Row) Flip() {
@@ -234,6 +241,23 @@ func (img Image) HasValidNeighbourCount() bool {
 	return util.InRange(img.Neighbours(), 2, 4)
 }
 
+func (img Image) MissingSides() string {
+	out := ""
+	if img.leftN == -1 {
+		out += "L "
+	}
+	if img.rightN == -1 {
+		out += "R "
+	}
+	if img.bottomN == -1 {
+		out += "B "
+	}
+	if img.topN == -1 {
+		out += "T "
+	}
+	return out
+}
+
 func (img Image) MatchBorder(other Image) int {
 	/*
 	 * Check if two images with the current orientation would
@@ -262,25 +286,39 @@ func (img Image) MatchBorder(other Image) int {
 }
 
 func (img *Image) ProcessBorder(other Image) int {
+	if len(img.sides) != len(other.sides) {
+		return -2
+	}
+	matches := 0
+	for i := 0; i < len(img.sides); i++ {
+		if img.left.Equals(other.sides[i]) {
+			img.leftN = other.id
+			matches++
+			//			return LEFT
+		}
 
-	if img.left.Equals(other.right) {
-		img.leftN = other.id
-		return LEFT
+		if img.right.Equals(other.sides[i]) {
+			img.rightN = other.id
+			matches++
+			//			return RIGHT
+		}
+
+		if img.top.Equals(other.sides[i]) {
+			img.topN = other.id
+			matches++
+			//			return TOP
+		}
+
+		if img.bottom.Equals(other.sides[i]) {
+			img.bottomN = other.id
+			matches++
+			///			return BOTTOM
+		}
+
 	}
 
-	if img.right.Equals(other.left) {
-		img.rightN = other.id
-		return RIGHT
-	}
-
-	if img.top.Equals(other.bottom) {
-		img.topN = other.id
-		return TOP
-	}
-
-	if img.bottom.Equals(other.top) {
-		img.bottomN = other.id
-		return BOTTOM
+	if matches > 1 {
+		fmt.Printf("%d with %d matched %d times\n", img.id, other.id, matches)
 	}
 
 	return -1
@@ -306,11 +344,28 @@ func (img *Image) Process() error {
 		img.right[i] = row[img.width-1]
 	}
 
-	img.sides = make([]Row, 4)
+	img.sides = make([]Row, 8)
 	img.sides[0] = img.left
 	img.sides[1] = img.right
 	img.sides[2] = img.bottom
 	img.sides[3] = img.top
+
+	/* Store flipped sides */
+	leftFlipped := img.left.Clone()
+	leftFlipped.Flip()
+	img.sides[4] = leftFlipped
+
+	rightFlipped := img.right.Clone()
+	rightFlipped.Flip()
+	img.sides[5] = rightFlipped
+
+	bottomFlipped := img.bottom.Clone()
+	bottomFlipped.Flip()
+	img.sides[6] = bottomFlipped
+
+	topFlipped := img.top.Clone()
+	topFlipped.Flip()
+	img.sides[7] = topFlipped
 
 	return nil
 }
@@ -352,15 +407,19 @@ func Resolve(images Images, width, height int) int {
 			if i == j {
 				continue
 			}
-
-			imgA.ProcessBorder(imgB)
+			ret := imgA.ProcessBorder(imgB)
+			if ret == -2 {
+				fmt.Printf("Error processing %d with %d\n", imgA.id, imgB.id)
+				return -1
+			}
 			images[i] = imgA
-			fmt.Println(images[i].Neighbours())
 		}
 	}
 
+	fmt.Println("ID   |Neighbours | Missing ")
+	fmt.Println("-----+-----------+----------")
 	for _, img := range images {
-		fmt.Println(img.id, img.Neighbours())
+		fmt.Printf("%4d | %9d | %s\n", img.id, img.Neighbours(), img.MissingSides())
 	}
 	return 0
 
@@ -368,7 +427,7 @@ func Resolve(images Images, width, height int) int {
 	foundCorner := false
 	for id, img := range images {
 		if img.IsCorner() {
-			fmt.Println("Found corner")
+			fmt.Printf("Found corner %d\n", id)
 			order[0][0] = id
 			foundCorner = true
 			break
