@@ -16,6 +16,7 @@ const (
 	RIGHT
 	TOP
 	BOTTOM
+	DIRECTION_COUNT
 )
 
 /*
@@ -28,232 +29,93 @@ const (
  * missing.
  */
 
-type Row []bool
-
-func (r Row) Equals(other Row) bool {
-	if len(r) != len(other) {
-		fmt.Printf(
-			"Lengths differ: %d != %d\n",
-			len(r),
-			len(other),
-		)
-		return false
-	}
-
-	for i := range r {
-		if r[i] != other[i] {
-			return false
-		}
-	}
-	return true
-}
-
-func (r Row) Clone() Row {
-	other := make(Row, len(r))
-	copy(other, r)
-	return r
-}
-
-func (r Row) Flip() {
-	for i := 0; i < len(r)/2; i++ {
-		r[i], r[len(r)-i-1] = r[len(r)-i-1], r[i]
+func DirectionString(direction int) string {
+	switch direction {
+	case LEFT:
+		return "L"
+	case RIGHT:
+		return "R"
+	case TOP:
+		return "T"
+	case BOTTOM:
+		return "B"
+	default:
+		return "?"
 	}
 }
 
-func (r Row) String() string {
-	out := ""
-	for _, pixel := range r {
-		if pixel {
-			out += "#"
-		} else {
-			out += "."
-		}
+type Tile struct {
+	id         int
+	image      Image
+	neighbours [DIRECTION_COUNT]int
+}
+
+func NewTile() Tile {
+	return Tile{
+		neighbours: [DIRECTION_COUNT]int{-1, -1, -1, -1},
 	}
-
-	return out
 }
 
-type Image struct {
-	id                           int
-	data                         []Row
-	left, right, top, bottom     Row
-	sides                        []Row
-	flippedSides                 []Row
-	width, height                int
-	leftN, rightN, topN, bottomN int
+func NewTileFromImage(img *Image) Tile {
+	tile := NewTile()
+	tile.image = *img
+	return tile
 }
 
-func NewImage() Image {
-	img := Image{}
-	img.data = make([]Row, 0)
-	img.leftN = -1
-	img.rightN = -1
-	img.topN = -1
-	img.bottomN = -1
-	return img
-}
-
-func (img *Image) FlipX() {
-	/* Flip row-wise */
-	for i, _ := range img.data {
-		img.data[i].Flip()
-	}
-	img.Process()
-}
-
-func (img *Image) FlipY() {
-	/* Flip an image along the y-axis by swapping all rows pair wise */
-	for i := 0; i < len(img.data)/2; i++ {
-		inverse := len(img.data) - 1 - i
-		img.data[i], img.data[inverse] = img.data[inverse], img.data[i]
-	}
-	img.Process()
-}
-
-func (img *Image) Transpose() {
-	/* Do a matrix transponation. This can be imagined as a flip along the diagnoal */
-
-	/* Create fresh memory there the data can be placed in */
-	newData := make([]Row, img.width)
-	for i := 0; i < img.width; i++ {
-		newData[i] = make(Row, img.height)
-	}
-
-	/* Transpose */
-	for y := 0; y < img.height; y++ {
-		for x := 0; x < img.width; x++ {
-			newData[x][y] = img.data[y][x]
-		}
-	}
-
-	/* Assign the image to the new transposed one */
-	img.data = newData
-
-	/* Do reprocessing in order to update all convenience data */
-	img.Process()
-}
-
-func (img *Image) RotateRight() {
-	/* A 90° right rotation of a matrix is a transponation+flip along the x-axis */
-	img.Transpose()
-	img.FlipX()
-}
-
-func (img *Image) RotateLeft() {
-	/* A 90° left rotation of a matrix is a transponation+flip along the y-axis */
-	img.Transpose()
-	img.FlipY()
-}
-
-func (img *Image) AddRow(row string) error {
-
-	/*
-	 * Abort if the given row doesn't match the existing ones
-	 * since martices need to have rows of the same count.
-	 * New matrices without any rows are unaffected.
-	 */
-	if img.width > 0 && img.width != len(row) {
-		return fmt.Errorf(
-			"Row length %d doesn't fit into images x resolution %d",
-			len(row),
-			img.width,
-		)
-	}
-
-	/* Set the length of the image. Only necessary for the first row. For any
-	* further row the width will be the same. */
-	img.width = len(row)
-
-	/* Transform the string to a bool array to lower memory footprint (since
-	* pixels can be only black or white. */
-	dataRow := make(Row, len(row))
-	for i, pixel := range row {
-
-		/* Abort if the given row has an unexpected pixel. */
-		if pixel != '#' && pixel != '.' {
-			return fmt.Errorf(
-				"Error parsing row on index %d with invalid pixel '%c'\n",
-				i,
-				pixel,
-			)
-		}
-
-		dataRow[i] = (pixel == '#')
-	}
-
-	/* Append the current row and correct the height */
-	img.data = append(img.data, dataRow)
-	img.height++
-	return nil
-}
-
-func (img Image) Neighbours() int {
+func (t Tile) Neighbours() int {
 	/* Counts the neighbours by checking all neighbour ids.
 	 * Those contain
 	 *  - positive number with the neighbours id
 	 *  - -1 if the tile itself the most outer one on this side
 	 */
+
 	count := 0
-	if img.leftN > -1 {
-		count++
-	}
-	if img.rightN > -1 {
-		count++
-	}
-	if img.topN > -1 {
-		count++
-	}
-	if img.bottomN > -1 {
-		count++
+	for i := 0; i < DIRECTION_COUNT; i++ {
+		if t.neighbours[i] > -1 {
+			count++
+		}
 	}
 	return count
 }
 
-func (img Image) IsCorner() bool {
+func (t Tile) IsCorner() bool {
 	/*
 	 * A corner has exactly two neighbours and is otherwise the most outer
 	 * tile on the two other sides.
 	 */
-	return img.Neighbours() == 2
+	return t.Neighbours() == 2
 }
 
-func (img Image) IsEdge() bool {
+func (t Tile) IsEdge() bool {
 	/*
 	 * An edge has exactly three neighbours and is otherwise the most
 	 * outer tile on one side.
 	 */
-	return img.Neighbours() == 3
+	return t.Neighbours() == 3
 }
 
-func (img Image) IsCenterPart() bool {
+func (t Tile) IsCenterPart() bool {
 	/*
 	 * A center part is no outer most tile on any side and has therefore
 	 * four neighbours.
 	 */
-	return img.Neighbours() == 4
+	return t.Neighbours() == 4
 }
 
-func (img Image) HasValidNeighbourCount() bool {
+func (t Tile) HasValidNeighbourCount() bool {
 	/*
 	 * A tile must be either corner, edge or center part.
 	 * Anything else should be treated as error.
 	 */
-	return util.InRange(img.Neighbours(), 2, 4)
+	return util.InRange(t.Neighbours(), 2, 4)
 }
 
-func (img Image) MissingSides() string {
+func (t Tile) MissingSides() string {
 	out := ""
-	if img.leftN == -1 {
-		out += "L "
-	}
-	if img.rightN == -1 {
-		out += "R "
-	}
-	if img.bottomN == -1 {
-		out += "B "
-	}
-	if img.topN == -1 {
-		out += "T "
+	for i := 0; i < DIRECTION_COUNT; i++ {
+		if t.neighbours[i] == -1 {
+			out += DirectionString(i)
+		}
 	}
 	return out
 }
@@ -322,52 +184,6 @@ func (img *Image) ProcessBorder(other Image) int {
 	}
 
 	return -1
-}
-func (img *Image) Process() error {
-	if img.height != img.width {
-		return fmt.Errorf(
-			"Image is no square. height=%d, width=%d",
-			img.height,
-			img.width,
-		)
-	}
-	img.left = make(Row, img.height)
-	img.right = make(Row, img.height)
-	img.top = make(Row, img.width)
-	img.bottom = make(Row, img.width)
-
-	copy(img.top, img.data[0])
-	copy(img.bottom, img.data[img.height-1])
-
-	for i, row := range img.data {
-		img.left[i] = row[0]
-		img.right[i] = row[img.width-1]
-	}
-
-	img.sides = make([]Row, 8)
-	img.sides[0] = img.left
-	img.sides[1] = img.right
-	img.sides[2] = img.bottom
-	img.sides[3] = img.top
-
-	/* Store flipped sides */
-	leftFlipped := img.left.Clone()
-	leftFlipped.Flip()
-	img.sides[4] = leftFlipped
-
-	rightFlipped := img.right.Clone()
-	rightFlipped.Flip()
-	img.sides[5] = rightFlipped
-
-	bottomFlipped := img.bottom.Clone()
-	bottomFlipped.Flip()
-	img.sides[6] = bottomFlipped
-
-	topFlipped := img.top.Clone()
-	topFlipped.Flip()
-	img.sides[7] = topFlipped
-
-	return nil
 }
 
 func (img Image) String() string {

@@ -11,9 +11,9 @@ var (
 	inputFile = "input"
 )
 
-type Row []bool
+type Side []bool
 
-func (r Row) Equals(other Row) bool {
+func (r Side) Equals(other Side) bool {
 	if len(r) != len(other) {
 		fmt.Printf(
 			"Lengths differ: %d != %d\n",
@@ -31,16 +31,16 @@ func (r Row) Equals(other Row) bool {
 	return true
 }
 
-func (r Row) Flip() Row {
-	newRow := make(Row, len(r))
+func (r Side) Flip() Side {
+	newSide := make(Side, len(r))
 
 	for i := range r {
-		newRow[i] = r[len(r)-i-1]
+		newSide[i] = r[len(r)-i-1]
 	}
-	return newRow
+	return newSide
 }
 
-func (r Row) String() string {
+func (r Side) String() string {
 	out := ""
 	for _, pixel := range r {
 		if pixel {
@@ -53,31 +53,38 @@ func (r Row) String() string {
 	return out
 }
 
-type Image struct {
-	id                       int
-	data                     []Row
-	left, right, top, bottom Row
-	sides                    []Row
-	flippedSides             []Row
-	width, height            int
+type Img struct {
+	id    int
+	data  []Side
+	sides []Side
 }
 
-func NewImage() Image {
-	img := Image{}
-	img.data = make([]Row, 0)
+func NewImg() Img {
+	img := Img{}
+	img.data = make([]Side, 0)
 	return img
 }
 
-func (img *Image) AddRow(row string) error {
-	if img.width > 0 && img.width != len(row) {
+func (img Img) Height() int {
+	return len(img.data)
+}
+
+func (img Img) Width() int {
+	if img.Height() == 0 {
+		return 0
+	}
+	return len(img.data[0])
+}
+
+func (img *Img) AddSide(row string) error {
+	if img.Width() > 0 && img.Width() != len(row) {
 		return fmt.Errorf(
-			"Row length %d doesn't fit into images x resolution %d",
+			"Side length %d doesn't fit into images x resolution %d",
 			len(row),
-			img.width,
+			img.Width(),
 		)
 	}
-	img.width = len(row)
-	dataRow := make(Row, len(row))
+	dataSide := make(Side, len(row))
 	for i, pixel := range row {
 		if pixel != '#' && pixel != '.' {
 			return fmt.Errorf(
@@ -87,16 +94,14 @@ func (img *Image) AddRow(row string) error {
 			)
 		}
 
-		dataRow[i] = (pixel == '#')
+		dataSide[i] = (pixel == '#')
 	}
 
-	img.data = append(img.data, dataRow)
-	img.height++
+	img.data = append(img.data, dataSide)
 	return nil
 }
 
-func (img Image) MatchAny(other Image) bool {
-
+func (img Img) MatchAny(other Img) bool {
 	for _, sideA := range img.sides {
 		for _, sideB := range other.sides {
 			if sideA.Equals(sideB) {
@@ -104,87 +109,50 @@ func (img Image) MatchAny(other Image) bool {
 			}
 		}
 	}
-
-	for _, sideA := range img.flippedSides {
-		for _, sideB := range other.flippedSides {
-			if sideA.Equals(sideB) {
-				return true
-			}
-		}
-	}
-
-	for _, sideA := range img.sides {
-		for _, sideB := range other.flippedSides {
-			if sideA.Equals(sideB) {
-				return true
-			}
-		}
-	}
-
-	for _, sideA := range img.flippedSides {
-		for _, sideB := range other.sides {
-			if sideA.Equals(sideB) {
-				return true
-			}
-		}
-	}
-
 	return false
 }
 
-func (img *Image) Process() error {
-	if img.height != img.width {
+func (img *Img) Process() error {
+	if img.Height() != img.Width() {
 		return fmt.Errorf(
-			"Image is no square. height=%d, width=%d",
-			img.height,
-			img.width,
+			"Img is no square. height=%d, width=%d",
+			img.Height(),
+			img.Width(),
 		)
 	}
-	img.left = make(Row, img.height)
-	img.right = make(Row, img.height)
-	img.top = make(Row, img.width)
-	img.bottom = make(Row, img.width)
 
-	copy(img.top, img.data[0])
-	copy(img.bottom, img.data[img.height-1])
-
+	left := make(Side, img.Height())
+	right := make(Side, img.Height())
 	for i, row := range img.data {
-		img.left[i] = row[0]
-		img.right[i] = row[img.width-1]
+		left[i] = row[0]
+		right[i] = row[img.Width()-1]
 	}
 
-	img.sides = make([]Row, 4)
-	img.sides[0] = img.left
-	img.sides[1] = img.right
-	img.sides[2] = img.bottom
-	img.sides[3] = img.top
-
-	img.flippedSides = make([]Row, 4)
-	img.flippedSides[0] = img.left.Flip()
-	img.flippedSides[1] = img.right.Flip()
-	img.flippedSides[2] = img.bottom.Flip()
-	img.flippedSides[3] = img.top.Flip()
+	img.sides = make([]Side, 8)
+	img.sides[0] = left
+	img.sides[1] = right
+	img.sides[2] = img.data[img.Height()-1]
+	img.sides[3] = img.data[0]
+	img.sides[4] = left.Flip()
+	img.sides[5] = right.Flip()
+	img.sides[6] = img.data[img.Height()-1].Flip()
+	img.sides[7] = img.data[0].Flip()
 
 	return nil
 }
 
-func (img Image) String() string {
+func (img Img) String() string {
 	out := fmt.Sprintf("= [%4d] =\n", img.id)
 
 	for _, row := range img.data {
 		out += fmt.Sprintf("%s\n", row)
 	}
-
-	out += fmt.Sprintf("L: %s\n", img.left)
-	out += fmt.Sprintf("R: %s\n", img.right)
-	out += fmt.Sprintf("T: %s\n", img.top)
-	out += fmt.Sprintf("B: %s\n", img.bottom)
 	return out
 }
 
-type Images map[int]Image
+type Imgs map[int]Img
 
-func (imgs Images) String() string {
+func (imgs Imgs) String() string {
 	out := ""
 	for _, img := range imgs {
 		out += fmt.Sprintf("%s\n", img)
@@ -192,9 +160,9 @@ func (imgs Images) String() string {
 	return out
 }
 
-func FindEdges(imgs Images) []int {
+func FindCorners(imgs Imgs) []int {
 
-	edges := make([]int, 0)
+	corners := make([]int, 0)
 	for _, imgA := range imgs {
 		sidesMatched := 0
 		for _, imgB := range imgs {
@@ -206,20 +174,19 @@ func FindEdges(imgs Images) []int {
 				sidesMatched++
 			}
 		}
-		fmt.Printf("%d %d\n", sidesMatched, imgA.id)
 		if sidesMatched == 2 {
-			edges = append(edges, imgA.id)
+			corners = append(corners, imgA.id)
 		}
 
 	}
-	return edges
+	return corners
 }
 
 func main() {
 
 	re := regexp.MustCompile(`^Tile (\d+):$`)
-	images := make(Images, 0)
-	img := NewImage()
+	images := make(Imgs, 0)
+	img := NewImg()
 	id := 0
 	for i, line := range util.LoadString(inputFile) {
 		if line == "" {
@@ -235,7 +202,7 @@ func main() {
 					return
 				}
 				images[id] = img
-				img = NewImage()
+				img = NewImg()
 			}
 			num, err := strconv.Atoi(match[1])
 			if err != nil {
@@ -249,7 +216,7 @@ func main() {
 			id = num
 			img.id = num
 		} else {
-			if err := img.AddRow(line); err != nil {
+			if err := img.AddSide(line); err != nil {
 				fmt.Println(err)
 				return
 			}
@@ -265,9 +232,9 @@ func main() {
 	images[id] = img
 
 	result := 1
-	for _, edge := range FindEdges(images) {
-		fmt.Println(edge)
-		result *= edge
+	for _, corner := range FindCorners(images) {
+		fmt.Println(corner)
+		result *= corner
 	}
 	fmt.Println(result)
 }

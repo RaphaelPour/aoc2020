@@ -98,7 +98,6 @@ func TestRotateRight2x2(t *testing.T) {
 	img.AddRow("..")
 	img.AddRow("##")
 	img.RotateRight()
-	img.Process()
 
 	require.Equal(t, expection, img.data)
 
@@ -117,7 +116,6 @@ func TestRotateRight3x3(t *testing.T) {
 	img.AddRow(".#.")
 	img.AddRow(".#.")
 	img.RotateRight()
-	img.Process()
 
 	require.Equal(t, expection, img.data)
 
@@ -135,7 +133,6 @@ func TestRotateRight3x2(t *testing.T) {
 	img.AddRow("###")
 	img.AddRow(".#.")
 	img.RotateRight()
-	img.Process()
 
 	require.Equal(t, expection, img.data)
 
@@ -152,7 +149,6 @@ func TestRotateLeft2x2(t *testing.T) {
 	img.AddRow("..")
 	img.AddRow("##")
 	img.RotateLeft()
-	img.Process()
 
 	require.Equal(t, expection, img.data)
 }
@@ -170,7 +166,6 @@ func TestRotateLeft3x3(t *testing.T) {
 	img.AddRow(".#.")
 	img.AddRow(".#.")
 	img.RotateLeft()
-	img.Process()
 
 	require.Equal(t, expection, img.data)
 
@@ -190,7 +185,6 @@ func TestRotateFullCircleRight(t *testing.T) {
 	img.RotateRight()
 	img.RotateRight()
 	img.RotateRight()
-	img.Process()
 
 	require.Equal(t, expection, img.data)
 
@@ -210,7 +204,6 @@ func TestRotateFullCircleLeft(t *testing.T) {
 	img.RotateLeft()
 	img.RotateLeft()
 	img.RotateLeft()
-	img.Process()
 
 	require.Equal(t, expection, img.data)
 
@@ -228,7 +221,6 @@ func TestRotateLeftRight(t *testing.T) {
 	img.AddRow("##")
 	img.RotateLeft()
 	img.RotateRight()
-	img.Process()
 
 	require.Equal(t, expection, img.data)
 }
@@ -247,7 +239,6 @@ func TestRotateLeftRightTwice(t *testing.T) {
 	img.RotateLeft()
 	img.RotateRight()
 	img.RotateRight()
-	img.Process()
 
 	require.Equal(t, expection, img.data)
 }
@@ -266,7 +257,6 @@ func TestRotateRightLeftTwice(t *testing.T) {
 	img.RotateRight()
 	img.RotateLeft()
 	img.RotateLeft()
-	img.Process()
 
 	require.Equal(t, expection, img.data)
 }
@@ -284,7 +274,6 @@ func TestFlipX(t *testing.T) {
 	img.AddRow("###")
 	img.AddRow("#..")
 	img.FlipX()
-	img.Process()
 
 	require.Equal(t, expection, img.data)
 }
@@ -302,7 +291,6 @@ func TestFlipY(t *testing.T) {
 	img.AddRow(".#.")
 	img.AddRow(".#.")
 	img.FlipY()
-	img.Process()
 
 	require.Equal(t, expection, img.data)
 }
@@ -342,4 +330,17 @@ func TestTranspose10x1(t *testing.T) {
 	img.Transpose()
 
 	require.Equal(t, expection, img.data)
+}
+
+func TestClone(t *testing.T) {
+	img := NewImage()
+	img.AddRow("..")
+	img.AddRow("#.")
+
+	other := img.Clone()
+
+	require.Equal(t, other.data, img.data)
+
+	other.data[0] = Row{true, true}
+	require.NotEqual(t, other.data, img.data)
 }
