@@ -21,8 +21,8 @@ const (
 /*
  * TODO:
  *
- * [ ] Add image flip
- * [ ] Add image rotate
+ * [x] Add image flip
+ * [x] Add image rotate
  * [ ] MatchAny: No flip/rotate, return match
  *
  */
@@ -95,7 +95,7 @@ func (img *Image) FlipX() {
 }
 
 func (img *Image) FlipY() {
-	/* Swap all rows pair wise */
+	/* Flip an image along the y-axis by swapping all rows pair wise */
 	for i := 0; i < len(img.data)/2; i++ {
 		inverse := len(img.data) - 1 - i
 		img.data[i], img.data[inverse] = img.data[inverse], img.data[i]
@@ -104,6 +104,9 @@ func (img *Image) FlipY() {
 }
 
 func (img *Image) Transpose() {
+	/* Do a matrix transponation. This can be imagined as a flip along the diagnoal */
+
+	/* Create fresh memory there the data can be placed in */
 	newData := make([]Row, img.width)
 	for i := 0; i < img.width; i++ {
 		newData[i] = make(Row, img.height)
@@ -116,21 +119,32 @@ func (img *Image) Transpose() {
 		}
 	}
 
+	/* Assign the image to the new transposed one */
 	img.data = newData
+
+	/* Do reprocessing in order to update all convenience data */
 	img.Process()
 }
 
 func (img *Image) RotateRight() {
+	/* A 90° right rotation of a matrix is a transponation+flip along the x-axis */
 	img.Transpose()
 	img.FlipX()
 }
 
 func (img *Image) RotateLeft() {
+	/* A 90° left rotation of a matrix is a transponation+flip along the y-axis */
 	img.Transpose()
 	img.FlipY()
 }
 
 func (img *Image) AddRow(row string) error {
+
+	/*
+	 * Abort if the given row doesn't match the existing ones
+	 * since martices need to have rows of the same count.
+	 * New matrices without any rows are unaffected.
+	 */
 	if img.width > 0 && img.width != len(row) {
 		return fmt.Errorf(
 			"Row length %d doesn't fit into images x resolution %d",
@@ -138,9 +152,17 @@ func (img *Image) AddRow(row string) error {
 			img.width,
 		)
 	}
+
+	/* Set the length of the image. Only necessary for the first row. For any
+	* further row the width will be the same. */
 	img.width = len(row)
+
+	/* Transform the string to a bool array to lower memory footprint (since
+	* pixels can be only black or white. */
 	dataRow := make(Row, len(row))
 	for i, pixel := range row {
+
+		/* Abort if the given row has an unexpected pixel. */
 		if pixel != '#' && pixel != '.' {
 			return fmt.Errorf(
 				"Error parsing row on index %d with invalid pixel '%c'\n",
@@ -152,12 +174,18 @@ func (img *Image) AddRow(row string) error {
 		dataRow[i] = (pixel == '#')
 	}
 
+	/* Append the current row and correct the height */
 	img.data = append(img.data, dataRow)
 	img.height++
 	return nil
 }
 
 func (img Image) Neighbours() int {
+	/* Counts the neighbours by checking all neighbour ids.
+	 * Those contain
+	 *  - positive number with the neighbours id
+	 *  - -1 if the tile itself the most outer one on this side
+	 */
 	count := 0
 	if img.leftN > -1 {
 		count++
@@ -175,11 +203,45 @@ func (img Image) Neighbours() int {
 }
 
 func (img Image) IsCorner() bool {
+	/*
+	 * A corner has exactly two neighbours and is otherwise the most outer
+	 * tile on the two other sides.
+	 */
 	return img.Neighbours() == 2
 }
 
-func (img Image) MatchBorder(other Image) int {
+func (img Image) IsEdge() bool {
+	/*
+	 * An edge has exactly three neighbours and is otherwise the most
+	 * outer tile on one side.
+	 */
+	return img.Neighbours() == 3
+}
 
+func (img Image) IsCenterPart() bool {
+	/*
+	 * A center part is no outer most tile on any side and has therefore
+	 * four neighbours.
+	 */
+	return img.Neighbours() == 4
+}
+
+func (img Image) HasValidNeighbourCount() bool {
+	/*
+	 * A tile must be either corner, edge or center part.
+	 * Anything else should be treated as error.
+	 */
+	return util.InRange(img.Neighbours(), 2, 4)
+}
+
+func (img Image) MatchBorder(other Image) int {
+	/*
+	 * Check if two images with the current orientation would
+	 * fit together and return the side on which this is true.
+	 *
+	 * This early-return method works because two images can
+	 * only be neighbours on one side simlutaneously.
+	 */
 	if img.left.Equals(other.right) {
 		return LEFT
 	}
