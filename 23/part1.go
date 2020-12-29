@@ -2,20 +2,12 @@ package main
 
 import (
 	"fmt"
-	"log"
-	"os"
-	"runtime/pprof"
-	"time"
 
 	"github.com/RaphaelPour/aoc2020/util"
 )
 
 var (
-	inputKey = "input"
-	inputs   = map[string][]int{
-		"input":  []int{7, 3, 9, 8, 6, 2, 5, 4, 1},
-		"input2": []int{3, 8, 9, 1, 2, 5, 4, 6, 7},
-	}
+	input = []int{7, 3, 9, 8, 6, 2, 5, 4, 1}
 )
 
 type Circle struct {
@@ -143,38 +135,12 @@ func (c Circle) Order() string {
 }
 
 func main() {
-	f, err := os.Create(fmt.Sprintf("part1.profile"))
-	if err != nil {
-		log.Fatal(err)
-	}
-	pprof.StartCPUProfile(f)
-	defer pprof.StopCPUProfile()
-
-	circle := Circle{cups: inputs[inputKey]}
-	start := time.Now()
-	sum := int64(0)
-	max := int64(0)
-	min := int64(10000.0)
-	avg := 0.0
-	for i := 0; i < 10000000; i++ {
+	circle := Circle{cups: input}
+	for i := 0; i < 100; i++ {
 		if err := circle.Next(); err != nil {
 			fmt.Println(err)
 			return
 		}
-
-		duration := time.Since(start).Nanoseconds()
-		sum += duration
-		if duration > max {
-			max = duration
-		} else if duration < min {
-			min = duration
-		}
-
-		avg += float64(duration) / 100.0
-
-		start = time.Now()
 	}
-	fmt.Printf("total=%dns, min=%dns, max=%dns, avg=%fns\n",
-		sum, min, max, avg)
 	fmt.Println(circle.Order())
 }
