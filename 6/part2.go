@@ -32,6 +32,5 @@ func main() {
 		}
 	}
 
-	fmt.Println("Invalid:", 4210)
 	fmt.Println(result)
 }
