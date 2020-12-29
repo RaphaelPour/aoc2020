@@ -172,13 +172,13 @@ func main() {
 	}
 
 	_, flippedCount := tiles.Stats()
-	fmt.Println("part 1:", flippedCount)
+	fmt.Println(flippedCount)
 
 	for i := 0; i < 100; i++ {
 		tiles.NextCornwayIteration()
 	}
 
 	_, flippedCount = tiles.Stats()
-	fmt.Println("part 2:", flippedCount)
+	fmt.Println(flippedCount)
 
 }
