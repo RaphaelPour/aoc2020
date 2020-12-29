@@ -75,9 +75,6 @@ func main() {
 		currentPlayer.cards = append(currentPlayer.cards, num)
 	}
 
-	fmt.Println("P1", player1.cards)
-	fmt.Println("P2", player2.cards)
-
 	for len(player1.cards) > 0 && len(player2.cards) > 0 {
 		if player1.cards[0] > player2.cards[0] {
 			player1.PutFirstCardToBack()
@@ -92,15 +89,11 @@ func main() {
 
 	result := 0
 	if len(player1.cards) > 0 {
-		fmt.Println("Player 1 wins")
 		currentPlayer = &player1
 	} else {
-		fmt.Println("Player 2 wins")
 		currentPlayer = &player2
 	}
 
-	fmt.Println("P1", player1.cards)
-	fmt.Println("P2", player2.cards)
 	for i, card := range currentPlayer.cards {
 		result += card * (len(currentPlayer.cards) - i)
 	}

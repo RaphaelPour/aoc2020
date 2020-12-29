@@ -2,11 +2,8 @@ package main
 
 import (
 	"fmt"
-	"os"
-	"runtime/pprof"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/RaphaelPour/aoc2020/util"
 )
@@ -14,8 +11,6 @@ import (
 var (
 	inputFile      = "input"
 	depthHistogram = map[int]int{}
-	lastUpdate     = time.Now()
-	startTime      = time.Now()
 )
 
 const (
@@ -108,29 +103,11 @@ func (g *Game) AddTurnToHistory() {
 	g.history[g.CurrentTurnID()] = true
 }
 
-func (g Game) Print(depth int, msg string) {
-	return
-	for i := 0; i < depth; i++ {
-		fmt.Print(" ")
-	}
-	fmt.Println(msg)
-}
-
 func (g *Game) Play(depth int) int {
-	if _, ok := depthHistogram[depth]; !ok {
-		depthHistogram[depth] = 0
-	}
-	depthHistogram[depth]++
-
-	if time.Since(lastUpdate).Seconds() > 3 {
-		fmt.Printf("\r%s: %v", time.Since(startTime), depthHistogram)
-		lastUpdate = time.Now()
-	}
 	for {
 
 		/* Abort if turn is reocurring and let player 1 win */
 		if g.IsTurnReocurring() {
-			g.Print(depth, "Turn reoccuring")
 			return PLAYER1
 		}
 		g.AddTurnToHistory()
@@ -140,7 +117,6 @@ func (g *Game) Play(depth int) int {
 		 * as the top card
 		 */
 		if g.p1.CanGoRecursive() && g.p2.CanGoRecursive() {
-			g.Print(depth, "New Subgame")
 			/* Go into recursion */
 			g2 := g.NewSubGame(g.p1.cards[0], g.p2.cards[0])
 
@@ -148,11 +124,9 @@ func (g *Game) Play(depth int) int {
 			if winner == PLAYER1 {
 				g.p1.PutFirstCardToBack()
 				g.p1.cards = append(g.p1.cards, g.p2.RemoveFirstCard())
-				g.Print(depth, "P1 won subgame/round")
 			} else {
 				g.p2.PutFirstCardToBack()
 				g.p2.cards = append(g.p2.cards, g.p1.RemoveFirstCard())
-				g.Print(depth, "P2 won subgame/round")
 			}
 			continue
 		}
@@ -161,19 +135,15 @@ func (g *Game) Play(depth int) int {
 		if g.p1.cards[0] > g.p2.cards[0] {
 			g.p1.PutFirstCardToBack()
 			g.p1.cards = append(g.p1.cards, g.p2.RemoveFirstCard())
-			g.Print(depth, "P1 won round")
 		} else {
 			g.p2.PutFirstCardToBack()
 			g.p2.cards = append(g.p2.cards, g.p1.RemoveFirstCard())
-			g.Print(depth, "P2 won round")
 		}
 
 		/* If a player has no card left: the other one wins */
 		if len(g.p1.cards) == 0 {
-			g.Print(depth, "P1 has no cards left")
 			return PLAYER2
 		} else if len(g.p2.cards) == 0 {
-			g.Print(depth, "P2 has no cards left")
 			return PLAYER1
 		}
 	}
@@ -194,18 +164,6 @@ func (g Game) WinnersScore() int {
 }
 
 func main() {
-
-	f, err := os.Create("22.profile")
-	if err != nil {
-		fmt.Println("could not create CPU profile: ", err)
-		return
-	}
-	defer f.Close() // error handling omitted for example
-	if err := pprof.StartCPUProfile(f); err != nil {
-		fmt.Println("could not start CPU profile: ", err)
-		return
-	}
-	defer pprof.StopCPUProfile()
 
 	player1 := NewPlayer()
 	player2 := NewPlayer()
@@ -236,5 +194,5 @@ func main() {
 
 	game.Play(0)
 
-	fmt.Println("\n", game.WinnersScore())
+	fmt.Println(game.WinnersScore())
 }
