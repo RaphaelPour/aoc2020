@@ -67,7 +67,6 @@ func (c *Class) Resolve() bool {
 	}
 	indices := c.ValidIndices()
 	if len(indices) == 1 {
-		fmt.Println("Set index to ", indices[0])
 		c.index = indices[0]
 		return true
 	}
@@ -145,9 +144,6 @@ func (c Classes) IsResolved() bool {
 func (c *Classes) Resolve(fieldCount int) {
 	round := 0
 	for !c.IsResolved() {
-		if round%10000 == 0 {
-			fmt.Printf("#%d\n", round)
-		}
 		for name, class := range c.hash {
 			/* Skip all already resolved classes */
 			if class.index != -1 {
@@ -159,7 +155,6 @@ func (c *Classes) Resolve(fieldCount int) {
 			 * and set this index at all other classes to false.
 			 */
 			if class.Resolve() {
-				fmt.Println("Resolved", name)
 				for nameOther, classOther := range c.hash {
 					/* Skip resolved class */
 					if name == nameOther {
@@ -315,7 +310,6 @@ func main() {
 	/* Resolve indice ambiguity */
 	classes.Resolve(ticketLength)
 
-	fmt.Println(classes)
 	departureClasses := make(map[string]int, 0)
 	for name, class := range classes.hash {
 		if !strings.HasPrefix(name, "departure") {
@@ -324,11 +318,8 @@ func main() {
 		departureClasses[name] = class.index
 	}
 
-	fmt.Println(departureClasses)
-
 	result := 1
-	for k, v := range departureClasses {
-		fmt.Println(k, ":", v)
+	for _, v := range departureClasses {
 		result *= ownTicket[v]
 	}
 
