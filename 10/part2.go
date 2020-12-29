@@ -34,8 +34,7 @@ func main() {
 	 */
 	sort.Ints(numbers)
 
-	fmt.Println("[S]plit [R]eturn [C]ombinate")
-	fmt.Println(">>>", findBinary(numbers, 0), "<<<")
+	fmt.Println(findBinary(numbers, 0))
 }
 
 /* findBinary:
@@ -53,15 +52,11 @@ func main() {
  */
 func findBinary(numbers []int, depth int) int {
 	if len(numbers) < 3 {
-		fmt.Printf("R:   1")
-		printPartition(-1, depth, numbers)
 		return 1
 	}
 
 	for i := 1; i < len(numbers)-1; i++ {
 		if util.Abs(numbers[i-1]-numbers[i+1]) > 3 {
-			fmt.Printf("S: %3d", numbers[i])
-			printPartition(i, depth, numbers)
 			return findBinary(numbers[:i+1], depth+1) *
 				findBinary(numbers[i:], depth+1)
 		}
@@ -79,26 +74,5 @@ func findBinary(numbers []int, depth int) int {
 	if numbers[len(numbers)-1]-numbers[0] > 3 {
 		result--
 	}
-	fmt.Printf("C: %3d", result)
-	printPartition(-1, depth, numbers)
 	return result
-}
-
-func printPartition(index, depth int, numbers []int) {
-
-	for i := 0; i < depth; i++ {
-		fmt.Print(" ")
-	}
-
-	fmt.Print("[")
-	for k := range numbers {
-		if k == index {
-			fmt.Printf("] ")
-			staticColor.Printf("%d", numbers[k])
-			fmt.Printf(" [")
-		} else {
-			fmt.Printf("%d ", numbers[k])
-		}
-	}
-	fmt.Println("]")
 }

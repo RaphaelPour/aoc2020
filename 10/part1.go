@@ -29,7 +29,6 @@ func main() {
 	last := 0
 	for _, num := range numbers {
 		diff := util.Abs(last - num)
-		fmt.Printf("| %d - %d | = %d\n", last, num, diff)
 		if _, ok := histogram[diff]; !ok {
 			histogram[diff] = 1
 		} else {
@@ -38,6 +37,5 @@ func main() {
 
 		last = num
 	}
-	fmt.Println(histogram)
 	fmt.Println(histogram[1] * histogram[3])
 }
