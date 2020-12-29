@@ -15,10 +15,6 @@ func main() {
 
 	re := regexp.MustCompile(`^([A-Z])(\d+)$`)
 
-	fmt.Println(" Action | Value | Waypoint      | Ship")
-	fmt.Println("        |       | x     | y     | x     | y   ")
-	fmt.Println("--------+-------+-------+-------+--------------")
-
 	for i, line := range util.LoadString("input") {
 		match := re.FindStringSubmatch(line)
 
@@ -53,19 +49,9 @@ func main() {
 			fmt.Printf("Unknown action in line %d: %s\n", i, action)
 			return
 		}
-
-		fmt.Printf(
-			" %s      | %2d    | %5d | %5d | %5d | %5d \n",
-			action,
-			val,
-			wx,
-			wy,
-			sx,
-			sy,
-		)
 	}
 
-	fmt.Printf("|%d| + |%d| = %d\n", sx, sy, util.Abs(sx)+util.Abs(sy))
+	fmt.Println(util.Abs(sx) + util.Abs(sy))
 }
 
 func Rotate(x, y, deg int) (int, int) {

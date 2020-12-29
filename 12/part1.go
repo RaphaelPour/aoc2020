@@ -50,8 +50,7 @@ func main() {
 			return
 		}
 
-		fmt.Printf("%s => %d/%d %d°\n", line, x, y, angle)
 	}
 
-	fmt.Printf("|%d| + |%d| = %d\n", x, y, util.Abs(x)+util.Abs(y))
+	fmt.Println(util.Abs(x) + util.Abs(y))
 }
