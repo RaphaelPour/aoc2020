@@ -20,14 +20,9 @@ func main() {
 		numbers = append(numbers, num)
 	}
 
-	fmt.Printf("%d numbers found\n", len(numbers))
-
 	preambleLength := 25
 	preamble := numbers[:preambleLength]
 	cipher := numbers[preambleLength:]
-
-	fmt.Printf("len(Preamble)=%d\n", len(preamble))
-	fmt.Printf("len(Cipher)=%d\n", len(cipher))
 
 	badNumber := 0
 	for i := range cipher {
@@ -38,8 +33,6 @@ func main() {
 			break
 		}
 	}
-
-	fmt.Printf("%d is not valid\n", badNumber)
 
 	crack(badNumber, numbers)
 }
@@ -69,7 +62,7 @@ func crack(badNumber int, numbers []int) {
 
 			if sum == badNumber {
 				min, max := util.MinMaxInts(summands)
-				fmt.Printf("min=%d, max=%d, sum=%d\n", min, max, min+max)
+				fmt.Println(min + max)
 				return
 			}
 		}
