@@ -97,12 +97,6 @@ func (p *Program) Run() {
 	}
 }
 
-func dumpRunes(runes []rune) {
-	for _, r := range runes {
-		fmt.Printf("%c", r)
-	}
-}
-
 func dec2Bin(value int64) string {
 	num := strconv.FormatInt(value, 2)
 
@@ -166,17 +160,10 @@ func main() {
 		program.Run()
 	}
 
-	fmt.Println("== [MEMORY] ==")
-	for k, v := range memory {
-		fmt.Printf("%6d: %d\n", k, v)
-	}
-
 	/* Sum up all left values */
 	for _, value := range memory {
 		result += value
 	}
 
-	/* TODO: Make util vor result, valid, invalid values */
-	fmt.Println("Too low:", "87681422310")
-	fmt.Println(">>", result, "<<")
+	fmt.Println(result)
 }

@@ -27,8 +27,6 @@ type Program struct {
 func (p *Program) Run() {
 	for _, assign := range p.assigns {
 		binValue := dec2Bin(assign.value)
-		// fmt.Println("dec(", assign.value, ") = bin(", binValue, ")")
-		// fmt.Println("    addr:", assign.address)
 		memory[assign.address] =
 			AndX(
 				binValue,
@@ -54,13 +52,7 @@ func AndX(value, mask string, acc uint64) uint64 {
 	}
 
 	for i := range mask {
-		fmt.Printf("%3d: %c,%c\n", i, mask[i], value[i])
 		if mask[i] == 'X' {
-			fmt.Printf(" %d |= (%d) << (%d)\n",
-				acc,
-				binMap[value[i] == '1'],
-				36-i,
-			)
 
 			currentMask := uint64(1 << (36 - i - 1))
 			if value[i] == '1' {
@@ -80,21 +72,7 @@ func AndX(value, mask string, acc uint64) uint64 {
 		acc |= (binMap[mask[i] == '1'] << (36 - i - 1))
 	}
 
-	fmt.Printf("%s &\n", value)
-	fmt.Println(mask, "=")
-	fmt.Printf("%s (%d)\n", dec2Bin(acc), acc)
 	return acc
-}
-
-func (p *Program) Listing() {
-	fmt.Println("======= [LISTING] ======")
-	fmt.Println("mask=", p.mask)
-
-	for i, assign := range p.assigns {
-		fmt.Printf("%d: mem[%3d] = %d\n",
-			i, assign.address, assign.value,
-		)
-	}
 }
 
 func main() {
@@ -145,32 +123,13 @@ func main() {
 	/* Run the programs */
 	result := uint64(0)
 	for _, program := range programs {
-		program.Listing()
 		program.Run()
-	}
-
-	fmt.Println("== [MEMORY] ==")
-	for k, v := range memory {
-		fmt.Printf("%6d: %d\n", k, v)
 	}
 
 	/* Sum up all left values */
 	for _, value := range memory {
-		/*
-			bin := util.Reverse(dec2Bin(value))
-
-			num, err := strconv.ParseInt(bin, 2, 64)
-			if err != nil {
-				fmt.Printf("Error converting %d to decimal: %s\n",
-					num, err,
-				)
-				return
-			}*/
 		result += value
 	}
 
-	/* TODO: Make util vor result, valid, invalid values */
-	fmt.Println("Too low:", "14830993840, 14839511071084")
-	fmt.Println("Invalid:", "1073741823")
-	fmt.Println(">>", result, "<<")
+	fmt.Println(result)
 }
