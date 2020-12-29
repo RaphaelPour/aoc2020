@@ -69,7 +69,7 @@ func main() {
 
 	currentLine := ""
 	valid := 0
-	for _, line := range util.Load("input") {
+	for _, line := range util.LoadString("input") {
 		/* We just read a whole "passport" */
 		if line == "" {
 			kv := re.FindAllStringSubmatch(currentLine, -1)
