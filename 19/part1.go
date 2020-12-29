@@ -89,18 +89,11 @@ func main() {
 			}
 
 			if valid && len(rest) == 0 {
-				fmt.Println("[ MATCH ]", line)
 				count++
-			} else {
-				fmt.Println("[INVALID]", line)
 			}
 		}
 	}
-
-	fmt.Println(rules)
-
-	fmt.Println("Too high: 130")
-	fmt.Println(count, "matches")
+	fmt.Println(count)
 }
 
 func parse(input string, ruleID int, rules Rules) (bool, string, error) {
@@ -118,9 +111,6 @@ func parse(input string, ruleID int, rules Rules) (bool, string, error) {
 	for _, alt := range rule {
 		if alt.terminal {
 			accepted := string(input[0]) == alt.symbol
-			if accepted {
-				fmt.Printf("[CONSUME] %c from %s\n", input[0], input)
-			}
 			return accepted, input[1:], nil
 		}
 
