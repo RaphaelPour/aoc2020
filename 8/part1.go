@@ -42,10 +42,9 @@ func main() {
 	visited := make(map[int]bool, 0)
 	i := 0
 	for true {
-		fmt.Println(program[i])
 		// Ceck if command was already executed one time
 		if _, ok := visited[i]; ok {
-			fmt.Printf("%d already visited. Acc=%d\n", i, acc)
+			fmt.Println(acc)
 			return
 		}
 		visited[i] = true
@@ -60,8 +59,6 @@ func main() {
 		default:
 			fmt.Println("Unknown instruction", program[i].command)
 		}
-
 		i++
-
 	}
 }

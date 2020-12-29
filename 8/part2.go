@@ -29,7 +29,6 @@ func (v VM) Run() bool {
 
 		// Ceck if command was already executed one time
 		if _, ok := visited[v.pc]; ok {
-			fmt.Printf("%d already visited. Acc=%d\n", v.pc, v.acc)
 			return false
 		}
 		visited[v.pc] = true
@@ -57,7 +56,7 @@ func (v VM) Run() bool {
 		v.pc++
 	}
 
-	fmt.Printf("Program terminated with acc=%d\n", v.acc)
+	fmt.Println(v.acc)
 	return true
 }
 
