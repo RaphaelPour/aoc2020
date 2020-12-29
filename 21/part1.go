@@ -215,6 +215,6 @@ func main() {
 
 	foods.MapAllergens()
 
-	fmt.Println("Part 1:", foods.IngredientCount())
-	fmt.Println("Part 2:", foods.CanoncialDangerousIngredients())
+	fmt.Println(foods.IngredientCount())
+	fmt.Println(foods.CanoncialDangerousIngredients())
 }
