@@ -58,14 +58,12 @@ func neighbours(x, y int, area []string) int {
 			if x1 == 0 && y1 == 0 {
 				continue
 			}
-			// fmt.Printf("%d.%d => %d.%d : %c\n", x1, y1, x+x1, y+y1, area[y+y1][x+x1])
 			if area[y+y1][x+x1] == OCCUPIED {
 				count++
 			}
 		}
 	}
 
-	// fmt.Println(count, "-----")
 	return count
 }
 
@@ -114,11 +112,7 @@ func main() {
 	area = append(area, bar)
 
 	i := 0
-	for true {
-		if i%100 == 0 {
-			fmt.Printf("Gen #%05d\n", i)
-		}
-		// dump(area)
+	for {
 		area2 := next(area)
 		if stopped(area, area2) {
 			break

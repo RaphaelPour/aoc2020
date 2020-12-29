@@ -64,7 +64,6 @@ func neighbours(x, y int, area []string) int {
 				if x1 == 0 && y1 == 0 {
 					continue
 				}
-				// fmt.Printf("%d.%d => %d.%d : %c\n", x1, y1, x+x1, y+y1, area[y+y1][x+x1])
 				x2 := x + x1*dist
 				y2 := y + y1*dist
 				if y2 >= len(area) || x2 >= len(area[0]) ||
@@ -79,18 +78,14 @@ func neighbours(x, y int, area []string) int {
 		}
 	}
 
-	// fmt.Printf("%d/%d:\n", x, y)
 	for i := 0; i < len(seats); i++ {
 		for j := 0; j < len(seats[0]); j++ {
-			// fmt.Printf("%c", seats[i][j])
 			if seats[i][j] == OCCUPIED {
 				count++
 			}
 		}
-		// fmt.Println("")
 	}
 
-	// fmt.Println(count, "-----")
 	return count
 }
 
@@ -139,10 +134,7 @@ func main() {
 	area = append(area, bar)
 
 	i := 0
-	for true {
-		if i%100 == 0 {
-			fmt.Printf("Gen #%05d\n", i)
-		}
+	for {
 		area2 := next(area)
 		if stopped(area, area2) {
 			break
