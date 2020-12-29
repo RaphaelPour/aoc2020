@@ -67,8 +67,6 @@ func main() {
 		ids = append(ids, BoardingID(row, col))
 	}
 
-	finalID := 0
-
 	for row := 1; row < 127; row++ {
 		for col := 0; col < 8; col++ {
 			if !seatsOccupied[row][col] {
@@ -85,14 +83,11 @@ func main() {
 					}
 
 					if id1found && id2found {
-						fmt.Println("ID:", id)
+						fmt.Println(id)
 						return
 					}
 				}
 			}
 		}
 	}
-
-	fmt.Println("Invalid: ", 71)
-	fmt.Println(" Result: ", finalID)
 }

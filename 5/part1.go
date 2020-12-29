@@ -66,6 +66,5 @@ func main() {
 		}
 	}
 
-	fmt.Println(" Valid:", 892)
-	fmt.Println("Result:", finalID)
+	fmt.Println(finalID)
 }
