@@ -9,6 +9,13 @@ func Abs(num int) int {
 	return num
 }
 
+func Sign(num int) int {
+	if num < 0 {
+		return -1
+	}
+	return 1
+}
+
 func Min(nums ...int) int {
 	min := nums[0]
 	for _, num := range nums {
