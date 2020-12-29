@@ -11,7 +11,7 @@ func main() {
 	/* Parse input to struct */
 	trees := []int{0, 0, 0, 0, 0}
 	indices := []int{1, 3, 5, 7, 1}
-	for i, line := range util.LoadDefault() {
+	for i, line := range util.LoadDefaultString() {
 		if i == 0 {
 			continue
 		}
@@ -52,6 +52,6 @@ func main() {
 	for _, c := range trees {
 		result *= c
 	}
-	fmt.Printf("Part1:  %d\n", trees[1])
-	fmt.Printf("Part2:  %d\n", result)
+	fmt.Println(trees[1])
+	fmt.Println(result)
 }
