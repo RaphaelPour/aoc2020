@@ -256,11 +256,9 @@ func main() {
 	}
 	cluster := *c
 
-	fmt.Printf("Before any cycle:\n\n%s", cluster)
 	for i := 0; i < 6; i++ {
 		cluster.Extend()
 		cluster.NextCycle()
-		fmt.Printf("After %d cycles:\n\n%s", i, cluster)
 	}
 
 	active, _ := cluster.Count()

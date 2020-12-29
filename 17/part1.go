@@ -208,11 +208,9 @@ func main() {
 	}
 	grid := *g
 
-	fmt.Printf("Before any cycle:\n\n%s", grid)
 	for i := 0; i < 6; i++ {
 		grid.Extend()
 		grid.NextCycle()
-		fmt.Printf("After %d cycles:\n\n%s", i, grid)
 	}
 
 	active, _ := count(grid)
