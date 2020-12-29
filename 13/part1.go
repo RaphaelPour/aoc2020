@@ -9,8 +9,6 @@ import (
 
 func main() {
 
-	// re := regexp.MustCompile(`^([A-Z])(\d+)$`)
-
 	lines := util.LoadString("input")
 	earliestTs, err := strconv.Atoi(lines[0])
 	if err != nil {
@@ -37,11 +35,7 @@ func main() {
 		for _, busTs := range timestamps {
 
 			if time%busTs == 0 {
-				fmt.Printf(
-					"BusID=%d, time=%d, waiting=%d\n",
-					busTs, time, time-earliestTs,
-				)
-				fmt.Println(">>", busTs*(time-earliestTs), "<<")
+				fmt.Println(busTs * (time - earliestTs))
 				return
 			}
 		}

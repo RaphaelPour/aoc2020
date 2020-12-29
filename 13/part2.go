@@ -3,28 +3,14 @@ package main
 import (
 	"fmt"
 	"github.com/RaphaelPour/aoc2020/util"
-	"github.com/fatih/color"
 	"math/big"
 	"strconv"
 	"strings"
 )
 
-/*
- */
-
 var (
-	goodColor = color.New(color.FgGreen, color.Bold)
-	badColor  = color.New(color.FgRed, color.Bold)
 	inputFile = "input"
-	solutions = map[string]uint64{
-		"input2": 1068781,
-		"input3": 3417,
-		"input4": 754018,
-		"input5": 779210,
-		"input6": 1261476,
-		"input7": 1202161486,
-	}
-	one = big.NewInt(1)
+	one       = big.NewInt(1)
 )
 
 /* https://rosettacode.org/wiki/Chinese_remainder_theorem#Go */
@@ -51,7 +37,6 @@ func main() {
 	 * The second one is a coma-separated list of busses with their
 	 * departure interval
 	 */
-	fmt.Println("Input file:", inputFile)
 	lines := util.LoadString(inputFile)
 	n := make([]*big.Int, 0)
 	a := make([]*big.Int, 0)
@@ -73,7 +58,6 @@ func main() {
 		i++
 	}
 
-	fmt.Println(crt(a, n))
-	return
-
+	result, _ := crt(a, n)
+	fmt.Println(result)
 }
