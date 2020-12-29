@@ -233,7 +233,6 @@ func main() {
 
 	result := 1
 	for _, corner := range FindCorners(images) {
-		fmt.Println(corner)
 		result *= corner
 	}
 	fmt.Println(result)
