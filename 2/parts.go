@@ -13,8 +13,8 @@ func main() {
 
 	re := regexp.MustCompile(`^(\d+)-(\d+)\s(\w):\s(\w+)$`)
 
-	correct1 := 0
-	correct2 := 0
+	part1 := 0
+	part2 := 0
 
 	/* Parse input to struct */
 	for i, line := range util.LoadDefaultString() {
@@ -38,7 +38,7 @@ func main() {
 		count1 := strings.Count(pw, char)
 
 		if count1 <= max && count1 >= min {
-			correct1++
+			part1++
 		}
 
 		count2 := 0
@@ -51,9 +51,9 @@ func main() {
 		}
 
 		if count2 == 1 {
-			correct2++
+			part2++
 		}
 	}
-	fmt.Printf("Valid part 1: %d\n", correct1)
-	fmt.Printf("Valid part 2: %d\n", correct2)
+	fmt.Println(part1)
+	fmt.Println(part2)
 }
