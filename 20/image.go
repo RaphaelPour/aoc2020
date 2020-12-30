@@ -2,6 +2,14 @@ package main
 
 import (
 	"fmt"
+	"github.com/RaphaelPour/aoc2020/util"
+)
+
+const (
+	FLIP_Y_MASK     = 0b0001
+	FLIP_X_MASK     = 0x0010
+	ROTATE_90_MASK  = 0x0100
+	ROTATE_180_MASK = 0x1000
 )
 
 /*
@@ -214,4 +222,29 @@ func (img *Image) RotateLeft() {
 	/* A 90° left rotation of a matrix is a transponation+flip along the y-axis */
 	img.Transpose()
 	img.FlipY()
+}
+
+func (img Image) Transform(mask int) Image {
+	if !util.InRange(mask, 0, 15) {
+		fmt.Printf("Transformation mask is out of bounds: %d/%04b\n", mask, mask)
+	}
+	imgT := img.Clone()
+
+	if mask&FLIP_Y_MASK != 0 {
+		imgT.FlipY()
+	}
+
+	if mask&FLIP_X_MASK != 0 {
+		imgT.FlipX()
+	}
+
+	if mask&ROTATE_90_MASK != 0 {
+		imgT.RotateLeft()
+	}
+	if mask&ROTATE_180_MASK != 0 {
+		imgT.RotateLeft()
+		imgT.RotateLeft()
+	}
+
+	return imgT
 }
