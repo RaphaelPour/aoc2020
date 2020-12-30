@@ -61,35 +61,3 @@ func main() {
 		return
 	}
 }
-
-func PrintPuzzle(p Puzzle, keys []int, width int) {
-	if len(p.tiles) != len(keys) {
-		fmt.Println(
-			"Count of keys doesn't match count of tiles. Got",
-			len(p.tiles),
-			"tiles and",
-			len(keys),
-			"keys",
-		)
-		return
-	}
-
-	/* Render multiple tiles on the same line depending on the width
-	 * parameter to make the puzzle observable
-	 */
-
-	/* Go through each key and overstep width-many tiles */
-	for i := 0; i < len(keys); i += width {
-		/* Go through the full height of a tile */
-		for y := 0; y < p.tiles[keys[i]].image.Height(); y++ {
-			/* Go through all tiles which should be on the same line */
-			for j := i; j < i+width; j++ {
-				currentImage := p.tiles[keys[j]].image
-				fmt.Print(currentImage.data[y])
-				fmt.Print(" ")
-			}
-			fmt.Println("")
-		}
-		fmt.Println("")
-	}
-}

@@ -123,6 +123,48 @@ func (p Puzzle) Keys() []int {
 	return keys
 }
 
+func (p Puzzle) PrintPuzzle() error {
+	resolution, err := p.Resolution()
+	if err != nil {
+		return fmt.Errorf("Error printing puzzle: %s", err)
+	}
+
+	/* Render multiple tiles on the same line depending on the width
+	 * parameter to make the puzzle observable
+	 */
+
+	keys := p.Keys()
+	/* Go through each key and overstep width-many tiles */
+	for i := 0; i < len(keys); i += resolution {
+		/* Go through the full height of a tile */
+		for y := 0; y < p.tiles[keys[i]].image.Height(); y++ {
+			/* Go through all tiles which should be on the same line */
+			for j := i; j < i+resolution; j++ {
+				currentImage := p.tiles[keys[j]].image
+				fmt.Print(currentImage.data[y])
+				fmt.Print(" ")
+			}
+			fmt.Println("")
+		}
+		fmt.Println("")
+	}
+
+	return nil
+}
+
+func (p Puzzle) PrintArrangement() {
+	for y := 0; y < len(p.arrangement); y++ {
+		for row := 0; row < p.arrangement[y][0].image.Height(); row++ {
+			for x := 0; x < len(p.arrangement[y]); x++ {
+				fmt.Print(p.arrangement[y][x].image.data[row])
+				fmt.Print(" ")
+			}
+			fmt.Println("")
+		}
+		fmt.Println("")
+	}
+}
+
 func (p *Puzzle) FindNeighbours() {
 
 	keys := p.Keys()
