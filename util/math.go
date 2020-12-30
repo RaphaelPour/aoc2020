@@ -36,6 +36,15 @@ func Max(nums ...int) int {
 	return max
 }
 
+func Pow(base, exp int) int {
+	result := 1
+	for exp > 0 {
+		result *= base
+		exp--
+	}
+	return result
+}
+
 func InRange(num, min, max int) bool {
 	return num >= min && num <= max
 }

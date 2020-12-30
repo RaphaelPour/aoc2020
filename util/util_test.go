@@ -2,6 +2,7 @@ package util
 
 import (
 	"io/ioutil"
+	"math"
 	"os"
 	"testing"
 
@@ -76,7 +77,7 @@ func TestMath(t *testing.T) {
 
 	require.Equal(t, 0, Min(0))
 	require.Equal(t, 1, Min(1))
-	require.Equal(t, 1, Min(1, 2))
+	require.Equal(t, 1, Min(2, 1))
 	require.Equal(t, -1, Min(-1, 0))
 
 	require.Equal(t, 0, Max(0))
@@ -99,4 +100,29 @@ func TestMinMax(t *testing.T) {
 
 	require.Equal(t, 1, MinInts([]int{1, 2, 3, 4}))
 	require.Equal(t, 4, MaxInts([]int{1, 2, 3, 4}))
+}
+
+func TestSign(t *testing.T) {
+	require.Equal(t, 1, Sign(1))
+	require.Equal(t, -1, Sign(-1))
+	require.Equal(t, 1, Sign(0))
+	require.Equal(t, -1, Sign(-10000))
+	require.Equal(t, 1, Sign(10000))
+}
+
+func TestPow(t *testing.T) {
+	require.Equal(t, 1, Pow(1, 1))
+	require.Equal(t, 2, Pow(2, 1))
+	require.Equal(t, 4, Pow(2, 2))
+	require.Equal(t, 9, Pow(3, 2))
+	require.Equal(t, 27, Pow(3, 3))
+	require.Equal(t, 1, Pow(1, 0))
+}
+
+func TestRadians(t *testing.T) {
+	require.EqualValues(t, 0, Radians(0))
+	require.EqualValues(t, math.Pi/2, Radians(90))
+	require.EqualValues(t, math.Pi, Radians(180))
+	require.EqualValues(t, 3*math.Pi/2, Radians(270))
+	require.EqualValues(t, 2*math.Pi, Radians(360))
 }
