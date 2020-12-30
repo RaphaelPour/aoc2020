@@ -142,6 +142,33 @@ func (img Image) Sides() []Row {
 	return []Row{left, right, top, bottom}
 }
 
+func (img Image) Left() Row {
+	left := make(Row, img.Height())
+	for i, row := range img.data {
+		left[i] = row[0]
+	}
+	return left
+}
+func (img Image) Right() Row {
+	right := make(Row, img.Height())
+	for i, row := range img.data {
+		right[i] = row[img.Width()-1]
+	}
+	return right
+}
+
+func (img Image) Top() Row {
+	top := make(Row, img.Width())
+	copy(top, img.data[0])
+	return top
+}
+
+func (img Image) Bottom() Row {
+	bottom := make(Row, img.Width())
+	copy(bottom, img.data[img.Height()-1])
+	return bottom
+}
+
 func (img *Image) FlipX() {
 	/* Flip row-wise */
 	for i, _ := range img.data {
