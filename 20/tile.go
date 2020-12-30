@@ -85,7 +85,7 @@ func (t Tile) HasValidNeighbourCount() bool {
 
 type Puzzle struct {
 	tiles       map[int]*Tile
-	arrangement [][]Tile
+	arrangement [][]*Tile
 }
 
 func NewPuzzle() Puzzle {
@@ -180,10 +180,6 @@ func (p *Puzzle) FindNeighbours() {
 			}
 		}
 	}
-
-	for i := 0; i < len(keys); i++ {
-		fmt.Println(p.tiles[keys[i]].neighbours)
-	}
 }
 
 func (p Puzzle) ValidateNeighbourCount() error {
@@ -272,10 +268,10 @@ func (p *Puzzle) Arrange() error {
 		return fmt.Errorf("Error getting resolution: %s", err)
 	}
 
-	arrangement := make([][]int, resolution)
+	p.arrangement = make([][]*Tile, resolution)
 
-	for i := range arrangement {
-		arrangement[i] = make([]int, resolution)
+	for i := range p.arrangement {
+		p.arrangement[i] = make([]*Tile, resolution)
 	}
 
 	/* Find the neighbours of each tile and validate the result afterwards.*/
@@ -284,7 +280,15 @@ func (p *Puzzle) Arrange() error {
 		return fmt.Errorf("Neighbour validation failed: %s", err)
 	}
 
-	fmt.Println("OK")
+	/* Start with an arbitrary corner */
+	for key, tile := range p.tiles {
+		if tile.IsCorner() {
+			p.arrangement[0][0] = tile
+			delete(p.tiles, key)
+		}
+	}
+
+	fmt.Println("DONE")
 
 	return nil
 }
