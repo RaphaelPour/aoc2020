@@ -37,8 +37,8 @@ func Max(nums ...int) int {
 }
 
 func Pow(base, exp int) int {
-	result := 1
-	for exp > 0 {
+	result := base
+	for exp-1 > 0 {
 		result *= base
 		exp--
 	}
