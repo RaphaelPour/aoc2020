@@ -122,14 +122,11 @@ func TestFindNeighbours(t *testing.T) {
 	t4 := NewTileFromImage(&img4)
 	t4.id = 4
 
-	puzzle := Puzzle{
-		tiles: map[int]*Tile{
-			1: &t1,
-			2: &t2,
-			3: &t3,
-			4: &t4,
-		},
-	}
+	puzzle := NewPuzzle()
+	puzzle.tiles[1] = &t1
+	puzzle.tiles[2] = &t2
+	puzzle.tiles[3] = &t3
+	puzzle.tiles[4] = &t4
 
 	require.Equal(t, []int{1, 2, 3, 4}, puzzle.Keys())
 
@@ -158,6 +155,8 @@ func TestFindNeighbours(t *testing.T) {
 	require.False(t, puzzle.tiles[2].IsCenterPart())
 	require.False(t, puzzle.tiles[3].IsCenterPart())
 	require.False(t, puzzle.tiles[4].IsCenterPart())
+
+	require.Nil(t, puzzle.ValidateNeighbourCount())
 }
 
 func TestAddNeighbour(t *testing.T) {

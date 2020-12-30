@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/RaphaelPour/aoc2020/util"
+	"math"
 	"sort"
 )
 
@@ -83,7 +84,31 @@ func (t Tile) HasValidNeighbourCount() bool {
 }
 
 type Puzzle struct {
-	tiles map[int]*Tile
+	tiles       map[int]*Tile
+	arrangement [][]Tile
+}
+
+func NewPuzzle() Puzzle {
+	p := Puzzle{}
+	p.tiles = make(map[int]*Tile, 0)
+	return p
+}
+
+func (p Puzzle) Resolution() (int, error) {
+	/* It can be assumed that all puzzles are squares. The resolution is the
+	 * square root of the total count of tiles. The result must have no
+	 * decimals. Otherwise making a square out of the tiles is not possible
+	 */
+	rawResolution := math.Sqrt(float64(len(p.tiles)))
+	if rawResolution != float64(int64(rawResolution)) {
+		return 0, fmt.Errorf(
+			"Bad resolution. Expected square, got sqrt(%d)=%f != %f",
+			len(p.tiles),
+			rawResolution,
+			float64(int64(rawResolution)),
+		)
+	}
+	return int(rawResolution), nil
 }
 
 func (p Puzzle) Keys() []int {
@@ -117,4 +142,107 @@ func (p *Puzzle) FindNeighbours() {
 	for i := 0; i < len(keys); i++ {
 		fmt.Println(p.tiles[keys[i]].neighbours)
 	}
+}
+
+func (p Puzzle) ValidateNeighbourCount() error {
+	corners, edges, centerParts := 0, 0, 0
+	bad := make([]int, 0)
+	for _, tile := range p.tiles {
+		if tile.IsCorner() {
+			corners++
+		} else if tile.IsEdge() {
+			edges++
+		} else if tile.IsCenterPart() {
+			centerParts++
+		} else {
+			bad = append(bad, len(tile.neighbours))
+		}
+	}
+
+	if len(bad) > 0 {
+		return fmt.Errorf(
+			"%d tiles with bad neighbour count:%v (c=%d,e=%d,cp=%d,b=%d)",
+			len(bad),
+			bad,
+			corners,
+			edges,
+			centerParts,
+			len(bad),
+		)
+	}
+
+	if corners != 4 {
+		return fmt.Errorf(
+			"Bad corner count. Expected 4, got %d (c=%d,e=%d,cp=%d,b=%d)",
+			corners,
+			corners,
+			edges,
+			centerParts,
+			len(bad),
+		)
+	}
+
+	resolution, err := p.Resolution()
+	if err != nil {
+		return fmt.Errorf("Error getting resolution: %s", err)
+	}
+
+	optimalEdgeCount := 4 * (resolution - 2)
+	if edges != optimalEdgeCount {
+		return fmt.Errorf(
+			"Bad edge count. Expected %d, got %d (c=%d,e=%d,cp=%d,b=%d)",
+			optimalEdgeCount,
+			edges,
+			corners,
+			edges,
+			centerParts,
+			len(bad),
+		)
+	}
+
+	/*
+	 *|CenterParts| = (resolution-2)^2
+	 * This calculates the count of tiles without the corners/edges.
+	 */
+	optimalCenterPartsCount := util.Pow(resolution-2, 2)
+	if centerParts != optimalCenterPartsCount {
+		return fmt.Errorf(
+			"Bad center part count. Expected %d, got %d (c=%d,e=%d,cp=%d,b=%d)",
+			optimalCenterPartsCount,
+			centerParts,
+			corners,
+			edges,
+			centerParts,
+			len(bad),
+		)
+	}
+
+	return nil
+}
+
+func (p *Puzzle) Arrange() error {
+
+	/* Initialize final arrangement by allocating the 2D array where all
+	 * tiles should be placed in in the right order and orientation.
+	 */
+	resolution, err := p.Resolution()
+	if err != nil {
+		return fmt.Errorf("Error getting resolution: %s", err)
+	}
+
+	arrangement := make([][]int, resolution)
+
+	for i := range arrangement {
+		arrangement[i] = make([]int, resolution)
+	}
+
+	/* Find the neighbours of each tile and validate the result afterwards.*/
+	p.FindNeighbours()
+	if err := p.ValidateNeighbourCount(); err != nil {
+		return fmt.Errorf("Neighbour validation failed: %s", err)
+	}
+
+	fmt.Println("OK")
+
+	return nil
 }

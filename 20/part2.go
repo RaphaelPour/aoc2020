@@ -8,13 +8,13 @@ import (
 )
 
 var (
-	inputFile = "input2"
+	inputFile = "input"
 )
 
 func main() {
 
 	re := regexp.MustCompile(`^Tile (\d+):$`)
-	tiles := make(Tiles, 0)
+	puzzle := NewPuzzle()
 	img := NewImage()
 	id := 0
 	for i, line := range util.LoadString(inputFile) {
@@ -27,7 +27,7 @@ func main() {
 			if id != 0 {
 				t := NewTileFromImage(&img)
 				t.id = id
-				tiles[id] = t
+				puzzle.tiles[id] = &t
 				img = NewImage()
 			}
 			num, err := strconv.Atoi(match[1])
@@ -52,17 +52,21 @@ func main() {
 	/* Add last image */
 	t := NewTileFromImage(&img)
 	t.id = id
-	tiles[id] = t
+	puzzle.tiles[id] = &t
 
 	/* Print puzzle */
 	/* PrintPuzzle(tiles, tiles.Keys(), 3) */
+	if err := puzzle.Arrange(); err != nil {
+		fmt.Printf("Error arranging puzzle: %s\n", err)
+		return
+	}
 }
 
-func PrintPuzzle(t Tiles, keys []int, width int) {
-	if len(t) != len(keys) {
+func PrintPuzzle(p Puzzle, keys []int, width int) {
+	if len(p.tiles) != len(keys) {
 		fmt.Println(
 			"Count of keys doesn't match count of tiles. Got",
-			len(t),
+			len(p.tiles),
 			"tiles and",
 			len(keys),
 			"keys",
@@ -77,10 +81,10 @@ func PrintPuzzle(t Tiles, keys []int, width int) {
 	/* Go through each key and overstep width-many tiles */
 	for i := 0; i < len(keys); i += width {
 		/* Go through the full height of a tile */
-		for y := 0; y < t[keys[i]].image.Height(); y++ {
+		for y := 0; y < p.tiles[keys[i]].image.Height(); y++ {
 			/* Go through all tiles which should be on the same line */
 			for j := i; j < i+width; j++ {
-				currentImage := t[keys[j]].image
+				currentImage := p.tiles[keys[j]].image
 				fmt.Print(currentImage.data[y])
 				fmt.Print(" ")
 			}
