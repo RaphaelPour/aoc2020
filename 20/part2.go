@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	inputFile = "input"
+	inputFile = "input2"
 )
 
 func main() {

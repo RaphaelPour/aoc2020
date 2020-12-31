@@ -10,6 +10,7 @@ import (
 
 type Tile struct {
 	id         int
+	arranged   bool
 	image      Image
 	neighbours []int
 }
@@ -214,6 +215,26 @@ func (p Puzzle) PrintArrangement() {
 	}
 }
 
+func (p Puzzle) PrintIDs(currentID int) {
+	fmt.Println("----")
+	for _, row := range p.arrangement {
+		for _, tile := range row {
+			id := -1
+			if tile != nil {
+				id = tile.id
+			}
+
+			if id == currentID && id != -1 {
+				fmt.Printf("<%4d> ", id)
+			} else {
+				fmt.Printf(" %4d  ", id)
+			}
+		}
+		fmt.Println("")
+	}
+	fmt.Println("----")
+}
+
 func (p *Puzzle) FindNeighbours() error {
 
 	keys := p.Keys()
@@ -357,21 +378,29 @@ func (p *Puzzle) Arrange() error {
 	}
 
 	/* Start with an arbitrary corner */
-	for key, tile := range p.corners {
+	for _, tile := range p.corners {
 		p.arrangement[0][0] = tile
 		fmt.Printf("Arrange %d to 0/0\n", tile.id)
-		delete(p.corners, key)
+		tile.arranged = true
 		break
 	}
 
 	/* Set origin of first corner so neighbours are Right/Top */
+	foundOrigin := false
 	for i := 0; i < 16; i++ {
 		newImg := p.arrangement[0][0].image.Transform(i)
 		if p.arrangement[0][0].neighbours[RIGHT] != -1 &&
 			p.arrangement[0][0].neighbours[BOTTOM] != -1 {
 			p.arrangement[0][0].image = newImg
+			foundOrigin = true
 			break
 		}
+	}
+	if !foundOrigin {
+		return fmt.Errorf(
+			"Couldn't align corner %d correctly",
+			p.arrangement[0][0].id,
+		)
 	}
 
 	/* Do edges/corners first */
@@ -379,13 +408,18 @@ func (p *Puzzle) Arrange() error {
 	for len(p.corners)+len(p.edges) > 0 {
 
 		/* Reset x if end of a row has been reached */
+		fmt.Printf("B: x/y=%d/%d\n", x, y)
 		if x == resolution {
 			x = 0
 			y++
 		}
+		fmt.Printf("A: x/y=%d/%d\n", x, y)
 
 		referenceTile := p.arrangement[y][x]
-		for neighbourDir, neighbourID := range referenceTile.neighbours {
+		p.PrintIDs(referenceTile.id)
+
+		foundAnyNeighbour := false
+		for _, neighbourID := range referenceTile.neighbours {
 			if neighbourID == -1 {
 				continue
 			}
@@ -395,9 +429,10 @@ func (p *Puzzle) Arrange() error {
 				return fmt.Errorf("Neighbour tile %d doesn't exist", neighbourID)
 			}
 			/* Skip center parts and only consider corners and edges */
-			if neighbourTile.IsCenterPart() {
+			if neighbourTile.IsCenterPart() || neighbourTile.arranged {
 				continue
 			}
+			foundAnyNeighbour = true
 			transformedImg, dir := referenceTile.image.TransformOtherUntilMatch(neighbourTile.image)
 			if transformedImg == nil {
 				return fmt.Errorf(
@@ -415,31 +450,25 @@ func (p *Puzzle) Arrange() error {
 			case RIGHT:
 				x++
 			case TOP:
-				y++
-			case BOTTOM:
 				y--
+			case BOTTOM:
+				y++
 			}
 
 			fmt.Printf("Arrange %d to %d/%d\n", neighbourID, x, y)
 			p.arrangement[y][x] = neighbourTile
 
-			/* Remove corner/edge from its source map */
-			if neighbourTile.IsCorner() {
-				delete(p.corners, neighbourID)
-			} else if neighbourTile.IsEdge() {
-				delete(p.edges, neighbourID)
-			} else {
-				return fmt.Errorf(
-					"Can't remove tile %d from source map."+
-						"It's neither a corner nor an edge",
-					neighbourID,
-				)
-			}
-
-			/* Remove reference/neighbour tile from each others neighbours */
-			referenceTile.neighbours[neighbourDir] = -1
-			neighbourTile.neighbours[OppositeDirection(neighbourDir)] = -1
+			neighbourTile.arranged = true
 			break
+		}
+
+		if !foundAnyNeighbour {
+			return fmt.Errorf(
+				"Error finding arrangable neighbour for %d."+
+					" %v are all unsuitable",
+				referenceTile.id,
+				referenceTile.neighbours,
+			)
 		}
 	}
 	p.PrintArrangement()
