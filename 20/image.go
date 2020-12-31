@@ -10,7 +10,41 @@ const (
 	FLIP_X_MASK     = 0x0010
 	ROTATE_90_MASK  = 0x0100
 	ROTATE_180_MASK = 0x1000
+
+	LEFT   = 0
+	RIGHT  = 1
+	TOP    = 2
+	BOTTOM = 3
 )
+
+func DirString(dir int) string {
+	switch dir {
+	case LEFT:
+		return "LEFT"
+	case RIGHT:
+		return "RIGHT"
+	case TOP:
+		return "TOP"
+	case BOTTOM:
+		return "BOTTOM"
+	default:
+		return "UNKNOWN"
+	}
+}
+
+func OppositeDirection(dir int) int {
+	switch dir {
+	case LEFT:
+		return RIGHT
+	case RIGHT:
+		return LEFT
+	case TOP:
+		return BOTTOM
+	case BOTTOM:
+		return TOP
+	}
+	return dir
+}
 
 /*
  * ROW
