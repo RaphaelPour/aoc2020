@@ -437,15 +437,8 @@ func (p *Puzzle) Arrange() error {
 			}
 
 			/* Remove reference/neighbour tile from each others neighbours */
-			referenceTile.neighbours = util.RemoveIntFromIntList(
-				neighbourID,
-				referenceTile.neighbours,
-			)
-
-			neighbourTile.neighbours = util.RemoveIntFromIntList(
-				referenceTile.id,
-				neighbourTile.neighbours,
-			)
+			referenceTile.neighbours[neighbourDir] = -1
+			neighbourTile.neighbours[OppositeDirection(neighbourDir)] = -1
 			break
 		}
 	}
