@@ -282,3 +282,25 @@ func (img Image) Transform(mask int) Image {
 
 	return imgT
 }
+
+func (img Image) TransformOtherUntilMatch(other Image) (*Image, int) {
+	for mask := 0; mask < 16; mask++ {
+		otherT := other.Transform(mask)
+
+		for _, sideB := range otherT.Sides() {
+			if img.Left().Equals(sideB) {
+				return &otherT, LEFT
+			}
+			if img.Right().Equals(sideB) {
+				return &otherT, RIGHT
+			}
+			if img.Top().Equals(sideB) {
+				return &otherT, TOP
+			}
+			if img.Bottom().Equals(sideB) {
+				return &otherT, BOTTOM
+			}
+		}
+	}
+	return nil, -1
+}
