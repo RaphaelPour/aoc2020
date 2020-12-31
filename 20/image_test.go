@@ -344,3 +344,29 @@ func TestClone(t *testing.T) {
 	other.data[0] = Row{true, true}
 	require.NotEqual(t, other.data, img.data)
 }
+
+func TestDirection(t *testing.T) {
+	dirs := []int{1, 2, 3, 4}
+	require.Equal(t, 1, dirs[LEFT])
+	require.Equal(t, 2, dirs[RIGHT])
+	require.Equal(t, 3, dirs[TOP])
+	require.Equal(t, 4, dirs[BOTTOM])
+
+	require.Equal(t, 2, dirs[OppositeDirection(LEFT)])
+	require.Equal(t, 1, dirs[OppositeDirection(RIGHT)])
+	require.Equal(t, 4, dirs[OppositeDirection(TOP)])
+	require.Equal(t, 3, dirs[OppositeDirection(BOTTOM)])
+	require.Equal(t, -1, OppositeDirection(-1))
+}
+
+func TestSides(t *testing.T) {
+	img := NewImage()
+	img.AddRow("..")
+	img.AddRow("#.")
+
+	sides := img.Sides()
+	require.True(t, sides[0].Equals(img.Left()))
+	require.True(t, sides[1].Equals(img.Right()))
+	require.True(t, sides[2].Equals(img.Top()))
+	require.True(t, sides[3].Equals(img.Bottom()))
+}
