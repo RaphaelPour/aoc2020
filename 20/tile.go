@@ -385,8 +385,15 @@ func (p *Puzzle) Arrange() error {
 		}
 
 		referenceTile := p.arrangement[y][x]
-		for _, neighbourID := range referenceTile.neighbours {
-			neighbourTile := p.tiles[neighbourID]
+		for neighbourDir, neighbourID := range referenceTile.neighbours {
+			if neighbourID == -1 {
+				continue
+			}
+
+			neighbourTile, ok := p.tiles[neighbourID]
+			if !ok {
+				return fmt.Errorf("Neighbour tile %d doesn't exist", neighbourID)
+			}
 			/* Skip center parts and only consider corners and edges */
 			if neighbourTile.IsCenterPart() {
 				continue
