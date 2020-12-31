@@ -22,7 +22,7 @@ func TestNeighbour1(t *testing.T) {
 	t1 := NewTileFromImage(&img1)
 	t2 := NewTileFromImage(&img2)
 
-	require.True(t, t1.AreNeighbours(t2))
+	require.Equal(t, LEFT, t1.AreNeighbours(t2))
 }
 
 func TestNeighbour2(t *testing.T) {
@@ -41,7 +41,7 @@ func TestNeighbour2(t *testing.T) {
 	t1 := NewTileFromImage(&img1)
 	t2 := NewTileFromImage(&img2)
 
-	require.False(t, t1.AreNeighbours(t2))
+	require.Equal(t, -1, t1.AreNeighbours(t2))
 }
 
 func TestNeighbour3(t *testing.T) {
@@ -49,18 +49,18 @@ func TestNeighbour3(t *testing.T) {
 	img1.AddRow("####")
 	img1.AddRow("....")
 	img1.AddRow("....")
-	img1.AddRow("....")
+	img1.AddRow("..##")
 
 	img2 := NewImage()
-	img2.AddRow("....")
-	img2.AddRow("....")
-	img2.AddRow("....")
+	img2.AddRow(".#.#")
+	img2.AddRow("#..#")
+	img2.AddRow("#...")
 	img2.AddRow("####")
 
 	t1 := NewTileFromImage(&img1)
 	t2 := NewTileFromImage(&img2)
 
-	require.True(t, t1.AreNeighbours(t2))
+	require.Equal(t, TOP, t1.AreNeighbours(t2))
 }
 
 func TestFindNeighbours(t *testing.T) {
@@ -78,7 +78,7 @@ func TestFindNeighbours(t *testing.T) {
 	img1.AddRow(".........#")
 
 	img2 := NewImage()
-	img2.AddRow("##########")
+	img2.AddRow("#########.")
 	img2.AddRow("#........#")
 	img2.AddRow(".........#")
 	img2.AddRow(".........#")
@@ -136,10 +136,11 @@ func TestFindNeighbours(t *testing.T) {
 	require.True(t, puzzle.tiles[3].IsCorner())
 	require.True(t, puzzle.tiles[4].IsCorner())
 
-	require.Equal(t, []int{2, 3}, puzzle.tiles[1].neighbours)
-	require.Equal(t, []int{1, 4}, puzzle.tiles[2].neighbours)
-	require.Equal(t, []int{1, 4}, puzzle.tiles[3].neighbours)
-	require.Equal(t, []int{2, 3}, puzzle.tiles[4].neighbours)
+	/* LEFT RIGHT TOP BOTTOM */
+	require.Equal(t, []int{-1, 2, -1, 3}, puzzle.tiles[1].neighbours)
+	require.Equal(t, []int{1, -1, -1, 4}, puzzle.tiles[2].neighbours)
+	require.Equal(t, []int{-1, 4, 1, -1}, puzzle.tiles[3].neighbours)
+	require.Equal(t, []int{3, -1, 2, -1}, puzzle.tiles[4].neighbours)
 
 	require.False(t, puzzle.tiles[1].IsEdge())
 	require.False(t, puzzle.tiles[2].IsEdge())
@@ -160,20 +161,20 @@ func TestFindNeighbours(t *testing.T) {
 }
 
 func TestAddNeighbour(t *testing.T) {
-	tile := Tile{id: 0}
+	tile := Tile{id: 0, neighbours: []int{-1, -1, -1, -1}}
 
-	/* Neighbours should be initialized empty */
-	require.Empty(t, tile.neighbours)
+	/* Neighbours should be initialized with all directions set to -1 */
+	require.Equal(t, []int{-1, -1, -1, -1}, tile.neighbours)
 
-	/* Neighbours should be still empty on trying add the tile itself */
-	tile.AddNeighbour(0)
-	require.Empty(t, tile.neighbours)
+	/* Neighbours should be still in init state on trying add the tile itself */
+	tile.AddNeighbour(0, TOP)
+	require.Equal(t, []int{-1, -1, -1, -1}, tile.neighbours)
 
 	/* Add a valid neighbour */
-	tile.AddNeighbour(1)
-	require.Equal(t, []int{1}, tile.neighbours)
+	tile.AddNeighbour(1, TOP)
+	require.Equal(t, []int{-1, -1, 1, -1}, tile.neighbours)
 
 	/* Duplicate neighbours should be avoided */
-	tile.AddNeighbour(1)
-	require.Equal(t, []int{1}, tile.neighbours)
+	tile.AddNeighbour(1, TOP)
+	require.Equal(t, []int{-1, -1, 1, -1}, tile.neighbours)
 }
