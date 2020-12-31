@@ -5,6 +5,7 @@ import (
 	"github.com/RaphaelPour/aoc2020/util"
 	"math"
 	"sort"
+	"strings"
 )
 
 type Tile struct {
@@ -16,39 +17,60 @@ type Tile struct {
 func NewTileFromImage(img *Image) Tile {
 	tile := Tile{}
 	tile.image = *img
-	tile.neighbours = make([]int, 0, 4)
+	tile.neighbours = []int{-1, -1, -1, -1}
 	return tile
 }
 
-func (t *Tile) AddNeighbour(id int) {
+func (t *Tile) AddNeighbour(id, direction int) error {
 	/* Prevent adding the tile itself */
 	if t.id == id {
-		return
+		return fmt.Errorf(
+			"Can't add the tile itself (%d)",
+			id,
+		)
 	}
 
-	/* Skip if already included */
-	for _, currentID := range t.neighbours {
-		if currentID == id {
-			return
-		}
+	if !util.InRange(direction, 0, 3) {
+		return fmt.Errorf(
+			"Error adding neighbour. Direction %d is invalid",
+			direction,
+		)
 	}
 
-	t.neighbours = append(t.neighbours, id)
+	if t.neighbours[direction] != -1 {
+		return fmt.Errorf(
+			"Neighbour %s is already set to %d",
+			DirString(direction),
+			t.neighbours[direction],
+		)
+	}
+	t.neighbours[direction] = id
+	return nil
 }
 
-func (t Tile) AreNeighbours(other Tile) bool {
-	for _, sideA := range t.image.Sides() {
+func (t Tile) AreNeighbours(other Tile) int {
+	for i, sideA := range t.image.Sides() {
 		for _, sideB := range other.image.Sides() {
 			if sideA.Equals(sideB) {
-				return true
+				return i
 			}
 			sideB.Flip()
 			if sideA.Equals(sideB) {
-				return true
+				return i
 			}
 		}
 	}
-	return false
+	return -1
+}
+
+func (t Tile) NeighbourCount() int {
+	count := 0
+	for _, ID := range t.neighbours {
+		if ID != -1 {
+			count++
+		}
+	}
+	return count
 }
 
 func (t Tile) IsCorner() bool {
@@ -56,7 +78,7 @@ func (t Tile) IsCorner() bool {
 	 * A corner has exactly two neighbours and is otherwise the most outer
 	 * tile on the two other sides.
 	 */
-	return len(t.neighbours) == 2
+	return t.NeighbourCount() == 2
 }
 
 func (t Tile) IsEdge() bool {
@@ -64,7 +86,7 @@ func (t Tile) IsEdge() bool {
 	 * An edge has exactly three neighbours and is otherwise the most
 	 * outer tile on one side.
 	 */
-	return len(t.neighbours) == 3
+	return t.NeighbourCount() == 3
 }
 
 func (t Tile) IsCenterPart() bool {
@@ -72,7 +94,7 @@ func (t Tile) IsCenterPart() bool {
 	 * A center part is no outer most tile on any side and has therefore
 	 * four neighbours.
 	 */
-	return len(t.neighbours) == 4
+	return t.NeighbourCount() == 4
 }
 
 func (t Tile) HasValidNeighbourCount() bool {
@@ -80,18 +102,28 @@ func (t Tile) HasValidNeighbourCount() bool {
 	 * A tile must be either corner, edge or center part.
 	 * Anything else should be treated as error.
 	 */
-	return util.InRange(len(t.neighbours), 2, 4)
+	return util.InRange(t.NeighbourCount(), 2, 4)
 }
 
 type Puzzle struct {
 	tiles       map[int]*Tile
 	arrangement [][]*Tile
+	corners     map[int]*Tile
+	edges       map[int]*Tile
+	centerParts map[int]*Tile
 }
 
 func NewPuzzle() Puzzle {
 	p := Puzzle{}
 	p.tiles = make(map[int]*Tile, 0)
+	p.corners = make(map[int]*Tile, 0)
+	p.edges = make(map[int]*Tile, 0)
+	p.centerParts = make(map[int]*Tile, 0)
 	return p
+}
+
+func (p Puzzle) AreAllTilesArranged() bool {
+	return len(p.corners)+len(p.edges)+len(p.centerParts) == 0
 }
 
 func (p Puzzle) Resolution() (int, error) {
@@ -153,10 +185,27 @@ func (p Puzzle) PrintPuzzle() error {
 }
 
 func (p Puzzle) PrintArrangement() {
+	width, height := 0, 0
+	for _, tile := range p.tiles {
+		width = tile.image.Width()
+		height = tile.image.Height()
+		break
+	}
 	for y := 0; y < len(p.arrangement); y++ {
-		for row := 0; row < p.arrangement[y][0].image.Height(); row++ {
+		for row := 0; row < height; row++ {
 			for x := 0; x < len(p.arrangement[y]); x++ {
-				fmt.Print(p.arrangement[y][x].image.data[row])
+
+				/* If tile is empty, fill space with spaces */
+				if p.arrangement[y][x] == nil {
+					fmt.Print(
+						strings.Repeat(
+							" ",
+							width,
+						),
+					)
+				} else {
+					fmt.Print(p.arrangement[y][x].image.data[row])
+				}
 				fmt.Print(" ")
 			}
 			fmt.Println("")
@@ -165,21 +214,47 @@ func (p Puzzle) PrintArrangement() {
 	}
 }
 
-func (p *Puzzle) FindNeighbours() {
+func (p *Puzzle) FindNeighbours() error {
 
 	keys := p.Keys()
 
 	/* Iterate over all unique pairs of tiles */
 	for i := 0; i < len(keys); i++ {
-		for j := i + 1; j < len(keys); j++ {
+		for j := 0; j < len(keys); j++ {
+			if i == j {
+				continue
+			}
 			tileA := p.tiles[keys[i]]
 			tileB := p.tiles[keys[j]]
-			if tileA.AreNeighbours(*tileB) {
-				tileA.AddNeighbour(tileB.id)
-				tileB.AddNeighbour(tileA.id)
+			if dir := tileA.AreNeighbours(*tileB); dir != -1 {
+				fmt.Printf(
+					"Adding %d %s to %d\n",
+					tileA.id,
+					DirString(dir),
+					tileB.id,
+				)
+				if err := tileA.AddNeighbour(tileB.id, dir); err != nil {
+					return fmt.Errorf(
+						"Error adding neighbour %d %s of %d",
+						tileB.id,
+						DirString(dir),
+						tileA.id,
+					)
+				}
 			}
 		}
 	}
+
+	for _, tile := range p.tiles {
+		if tile.IsCorner() {
+			p.corners[tile.id] = tile
+		} else if tile.IsEdge() {
+			p.edges[tile.id] = tile
+		} else if tile.IsCenterPart() {
+			p.centerParts[tile.id] = tile
+		}
+	}
+	return nil
 }
 
 func (p Puzzle) ValidateNeighbourCount() error {
@@ -193,7 +268,8 @@ func (p Puzzle) ValidateNeighbourCount() error {
 		} else if tile.IsCenterPart() {
 			centerParts++
 		} else {
-			bad = append(bad, len(tile.neighbours))
+			fmt.Printf("Found bad tile %d: %v\n", tile.id, tile.neighbours)
+			bad = append(bad, tile.id)
 		}
 	}
 
@@ -281,12 +357,92 @@ func (p *Puzzle) Arrange() error {
 	}
 
 	/* Start with an arbitrary corner */
-	for key, tile := range p.tiles {
-		if tile.IsCorner() {
-			p.arrangement[0][0] = tile
-			delete(p.tiles, key)
+	for key, tile := range p.corners {
+		p.arrangement[0][0] = tile
+		fmt.Printf("Arrange %d to 0/0\n", tile.id)
+		delete(p.corners, key)
+		break
+	}
+
+	/* Set origin of first corner so neighbours are Right/Top */
+	for i := 0; i < 16; i++ {
+		newImg := p.arrangement[0][0].image.Transform(i)
+		if p.arrangement[0][0].neighbours[RIGHT] != -1 &&
+			p.arrangement[0][0].neighbours[BOTTOM] != -1 {
+			p.arrangement[0][0].image = newImg
+			break
 		}
 	}
+
+	/* Do edges/corners first */
+	x, y := 0, 0
+	for len(p.corners)+len(p.edges) > 0 {
+
+		/* Reset x if end of a row has been reached */
+		if x == resolution {
+			x = 0
+			y++
+		}
+
+		referenceTile := p.arrangement[y][x]
+		for _, neighbourID := range referenceTile.neighbours {
+			neighbourTile := p.tiles[neighbourID]
+			/* Skip center parts and only consider corners and edges */
+			if neighbourTile.IsCenterPart() {
+				continue
+			}
+			transformedImg, dir := referenceTile.image.TransformOtherUntilMatch(neighbourTile.image)
+			if transformedImg == nil {
+				return fmt.Errorf(
+					"Error transforming %d until it matches %d",
+					referenceTile.id,
+					neighbourID,
+				)
+			}
+
+			neighbourTile.image = *transformedImg
+
+			switch dir {
+			case LEFT:
+				x--
+			case RIGHT:
+				x++
+			case TOP:
+				y++
+			case BOTTOM:
+				y--
+			}
+
+			fmt.Printf("Arrange %d to %d/%d\n", neighbourID, x, y)
+			p.arrangement[y][x] = neighbourTile
+
+			/* Remove corner/edge from its source map */
+			if neighbourTile.IsCorner() {
+				delete(p.corners, neighbourID)
+			} else if neighbourTile.IsEdge() {
+				delete(p.edges, neighbourID)
+			} else {
+				return fmt.Errorf(
+					"Can't remove tile %d from source map."+
+						"It's neither a corner nor an edge",
+					neighbourID,
+				)
+			}
+
+			/* Remove reference/neighbour tile from each others neighbours */
+			referenceTile.neighbours = util.RemoveIntFromIntList(
+				neighbourID,
+				referenceTile.neighbours,
+			)
+
+			neighbourTile.neighbours = util.RemoveIntFromIntList(
+				referenceTile.id,
+				neighbourTile.neighbours,
+			)
+			break
+		}
+	}
+	p.PrintArrangement()
 
 	fmt.Println("DONE")
 
