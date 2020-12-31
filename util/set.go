@@ -46,6 +46,22 @@ func FindNextIntInList(needle int, haystack []int) int {
 	return -1
 }
 
+func RemoveIntFromIntList(needle int, haystack []int) []int {
+	index := -1
+	for i, item := range haystack {
+		if item == needle {
+			index = i
+			break
+		}
+	}
+	if index == -1 {
+		return haystack
+	}
+
+	haystack[index] = haystack[len(haystack)-1]
+	return haystack[:len(haystack)-1]
+}
+
 func IntSubsetOf(set, subset []int) bool {
 	for _, subel := range subset {
 		found := false
